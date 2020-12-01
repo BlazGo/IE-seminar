@@ -16,7 +16,7 @@ class VisVmeter():
     
         self.temp = 20
 
-        print("Finished initializing...")
+        print("Finished initializing measurement instrument resources...")
 
     def setParameters(self):
         print("Setting up instrument...")

@@ -23,11 +23,9 @@ line by line.
 Add to heading also what we use
 
 read used parameters from config file
-"""
 
-def browse_button():
-    folder = tk.filedialog.askdirectory()
-    print(folder)
+GUI alternative PySimpleGUI
+"""
 
 class read_write_Func():
 
@@ -113,12 +111,36 @@ class read_write_Func():
 
 rw = read_write_Func()
 
+
+#--------------Tkinter-----------------#
+
 root = tk.Tk()
-text1 = tk.Label(root, text = rw.folder_to_read)
-text1.pack()
-button1 = tk.Button(root, text = "Browse for folder", command = browse_button)
-button1.pack()
+root.geometry("500x500")
+
+root.folder_to_read = ""
+root.filename_to_read = ""
+root.folder_to_create = ""
+root.filename_to_create = ""
+
+def browse_folder_read():
+    root.folder_to_read = tk.filedialog.askdirectory()
+
+def browse_folder_create():
+    root.folder_to_create = tk.filedialog.askdirectory()
+
+text1 = tk.Label(root, text = str("Default folder to read: " + rw.folder_to_read))
+text1.place(relx = 0.1, rely = 0.1, anchor = "sw")
+button_readDir = tk.Button(root, text = "Browse for folder", command = browse_folder_read)
+button_readDir.place(relx = 0.4, rely = 0.11)
+text2 = tk.Label(root, text = str("Default folder to create: " + rw.folder_to_create))
+text2.place(relx = 0.1, rely = 0.3, anchor = "sw")
+button_createDir = tk.Button(root, text = "Browse for folder", command = browse_folder_create)
+button_createDir.place(relx = 0.4, rely = 0.31)
 tk.mainloop()
+
+#--------------Tkinter end-----------------#
+
+print(root.folder_to_read)
 
 rw.wait_file()
 rw.copy_heading()

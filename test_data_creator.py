@@ -19,7 +19,8 @@ path_to_create = "C:/Users/b_gorjanc/Documents/Project_2/Measurement_files/"
 
 # Quality of life code checks the files of specific name and adds the next index increment
 counter = 0
-filename = path_to_create + str(date.today()) + "_Test_{}.txt" 
+filename = path_to_create + "N4877 AM550 Core 303 230V 50Hz temp R.txt"
+#filename = path_to_create + str(date.today()) + "_Test_{}.txt" 
 while isfile(filename.format(counter)):
     counter += 1
 filename_to_create = filename.format(counter)
@@ -37,7 +38,9 @@ new_file.flush() # without it the file most of the time does not update until th
 
 time.sleep(5)
 for i in range(8,len(original_lines)):
+    start = time.time()
     new_file.write(original_lines[i]) # write i-th line
-    print(original_lines[i])
+    #print(original_lines[i])
     new_file.flush() # refresh file? update
+    print("Time of loop: ", round((time.time()-start)*1000,4), "[ms]")
     time.sleep(2)

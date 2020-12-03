@@ -9,6 +9,17 @@ class VisVmeter():
 
     """
     Class for managing voltmeter readings and communication
+
+    Model to use: Keysight DAQ970A
+    
+    (Optional)
+    Model: HP 3456A Digital Voltmeter
+    Model: HP 3455A Digital Voltmeter
+
+    TODO
+    3 measurement instruments
+    configuration file to read which instrument to use
+    where files are and will be created
     """
 
     def __init__(self):
@@ -35,8 +46,10 @@ class VisVmeter():
         print("Restarting instrument...")
         print("Finished restarting.")
 
-rm = pyvisa.ResourceManager('@py')
+rm = pyvisa.ResourceManager("@py")
+print(rm)
 print(rm.list_resources())
+
 # my_instrument = rm.open_resource("GPIB0::8::0::INSTR", read_termination = "\n", write_termination = "\n")
 # query_delay = 0.1
 # in simulation mode only 8 out of GPIB0 works

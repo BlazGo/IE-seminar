@@ -24,8 +24,15 @@ class VisVmeter():
 
     def __init__(self):
         print("Initializing measuring instrument resources...")
-    
+
         self.temp = 20
+
+        self.rm = pyvisa.ResourceManager("@py")
+        print("Found resources: {}" .format(self.rm.list_resources()))
+
+        # my_instrument = rm.open_resource("GPIB0::8::0::INSTR", read_termination = "\n", write_termination = "\n")
+        # my_instrument.query("?IDN"))
+        # my_instrument.write("MEAS:VOLT:DC? 10, 0.001 (@101)") # 10V range, 1mV resolution
 
         print("Finished initializing measurement instrument resources...")
 
@@ -46,9 +53,7 @@ class VisVmeter():
         print("Restarting instrument...")
         print("Finished restarting.")
 
-rm = pyvisa.ResourceManager("@py")
-print(rm)
-print(rm.list_resources())
+Vmeter = VisVmeter()
 
 # my_instrument = rm.open_resource("GPIB0::8::0::INSTR", read_termination = "\n", write_termination = "\n")
 # query_delay = 0.1

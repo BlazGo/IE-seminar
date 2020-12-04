@@ -1,11 +1,9 @@
 #!/usr/bin/python
 # -*- coding: UTF-8
 
-from os.path import join, isfile
-from os import listdir
+import os
 import time
 import random
-from datetime import date
 from visaRes import VisVmeter
 import tkinter.filedialog
 import tkinter as tk
@@ -34,14 +32,14 @@ class read_write_Func():
     """
     
     def __init__(self):
-        #today = date.today()
         self.interval = 1 # seconds interval of repetition
         self.curr_line = None
         self.old_line = None
         self.instrument = VisVmeter()
         self.lines_written = 0
 
-        config_path = "C:/Users/b_gorjanc/Documents/Project_2/default_config.txt"
+        # get path of where this script is located
+        config_path = os.path.join(os.path.basename(os.path.dirname(os.path.realpath(__file__))), "default_config.txt")
         
         with open(config_path, "r") as config:
             config_lines = config.readlines()
@@ -63,7 +61,7 @@ class read_write_Func():
         # check if wanted file is already created and read it if not wait.
         while status == 0:
             try:
-                self.old_file = open(join(self.folder_to_read, self.filename_to_read), "r")
+                self.old_file = open(os.path.join(self.folder_to_read, self.filename_to_read), "r")
                 self.new_file = open(self.folder_to_create, self.filename_to_create, "a")
                 print("File created. Moving on...")
                 break
@@ -111,11 +109,10 @@ class read_write_Func():
 
 rw = read_write_Func()
 
-
 #--------------Tkinter-----------------#
 
 root = tk.Tk()
-root.geometry("500x500")
+root.geometry("800x400")
 
 root.folder_to_read = ""
 root.filename_to_read = ""
@@ -129,18 +126,19 @@ def browse_folder_create():
     root.folder_to_create = tk.filedialog.askdirectory()
 
 text1 = tk.Label(root, text = str("Default folder to read: " + rw.folder_to_read))
-text1.place(relx = 0.1, rely = 0.1, anchor = "sw")
+text1.place(x = 10, y = 10, anchor = "nw")
+# tk.Canvas.create_rectangle(x1 = 10, y1 = 10, x2 = 20, y2 = 20)
 button_readDir = tk.Button(root, text = "Browse for folder", command = browse_folder_read)
-button_readDir.place(relx = 0.4, rely = 0.11)
+button_readDir.place(x = 600, y = 10, anchor = "n")
 text2 = tk.Label(root, text = str("Default folder to create: " + rw.folder_to_create))
-text2.place(relx = 0.1, rely = 0.3, anchor = "sw")
+text2.place(x = 10, y = 40, anchor = "nw")
 button_createDir = tk.Button(root, text = "Browse for folder", command = browse_folder_create)
-button_createDir.place(relx = 0.4, rely = 0.31)
+button_createDir.place(x = 600, y = 40, anchor = "n")
 tk.mainloop()
 
-#--------------Tkinter end-----------------#
-
 print(root.folder_to_read)
+
+#--------------Tkinter end-----------------#
 
 rw.wait_file()
 rw.copy_heading()

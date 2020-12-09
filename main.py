@@ -21,8 +21,6 @@ line by line.
 Add to heading also what we use
 
 read used parameters from config file
-
-GUI alternative PySimpleGUI
 """
 
 class read_write_Func():
@@ -108,38 +106,6 @@ class read_write_Func():
         print("Done.")
 
 rw = read_write_Func()
-
-#--------------Tkinter-----------------#
-
-root = tk.Tk()
-root.geometry("800x400")
-
-root.folder_to_read = ""
-root.filename_to_read = ""
-root.folder_to_create = ""
-root.filename_to_create = ""
-
-def browse_folder_read():
-    root.folder_to_read = tk.filedialog.askdirectory()
-
-def browse_folder_create():
-    root.folder_to_create = tk.filedialog.askdirectory()
-
-text1 = tk.Label(root, text = str("Default folder to read: " + rw.folder_to_read))
-text1.place(x = 10, y = 10, anchor = "nw")
-# tk.Canvas.create_rectangle(x1 = 10, y1 = 10, x2 = 20, y2 = 20)
-button_readDir = tk.Button(root, text = "Browse for folder", command = browse_folder_read)
-button_readDir.place(x = 600, y = 10, anchor = "n")
-text2 = tk.Label(root, text = str("Default folder to create: " + rw.folder_to_create))
-text2.place(x = 10, y = 40, anchor = "nw")
-button_createDir = tk.Button(root, text = "Browse for folder", command = browse_folder_create)
-button_createDir.place(x = 600, y = 40, anchor = "n")
-tk.mainloop()
-
-print(root.folder_to_read)
-
-#--------------Tkinter end-----------------#
-
 rw.wait_file()
 rw.copy_heading()
 

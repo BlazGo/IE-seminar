@@ -11,17 +11,20 @@ class simpleUI():
         # Setup #
         #------------------------------#
 
+        # Widget colors
         self.fg_color = "#0B3948"
         self.bg_color = "#ACB0BD"
         self.bt_color = "#EAEDED"
         self.lbl_color = "#D0CDD7"
         self.ent_color = "#D9DBF1"
 
+        # Main window setup
         mainWindow = tk.Tk()
         mainWindow.title("Vhodni podatki")
         mainWindow.columnconfigure(0, minsize = 250)
         mainWindow.rowconfigure([0,1], minsize = 100)
 
+        # Top menu setup
         menubar = tk.Menu(mainWindow)
         helpmenu = tk.Menu(menubar, tearoff = 0)
         helpmenu.add_command(label = "How to use", command = do_nothing)
@@ -29,6 +32,7 @@ class simpleUI():
         
         mainWindow.config(bg = self.bg_color, menu = menubar)
 
+        # Save input parameters from config
         self.input_parameters = input_parameters
 
         self.input_dir_path = "default in dir path"
@@ -39,6 +43,7 @@ class simpleUI():
         self.output_filename.set("default out filename")
         self.instrument = "Keysight DAQ970A"
 
+        # Frames setup
         input_frame = tk.Frame(bg = self.bg_color, relief = tk.SUNKEN, borderwidth = 3)
         output_frame = tk.Frame(bg = self.bg_color,relief = tk.SUNKEN, borderwidth = 3)
         other_frame = tk.Frame(bg = self.bg_color)
@@ -115,13 +120,13 @@ class simpleUI():
                 ent_in_dir.insert(0, self.input_dir_path)
 
         def get_out_dir_path():
-            temp = self.input_dir_path
+            temp = self.output_dir_path
             self.output_dir_path = filedialog.askdirectory()
 
             if self.output_dir_path == "":
                 self.output_dir_path = temp
             else:
-                ent_in_dir.insert(0, self.output_dir_path)
+                ent_out_dir.insert(0, self.output_dir_path)
 
         def abort_program():
             print("Execution aborted.")
@@ -265,6 +270,5 @@ if __name__ == "__main__":
             print("{}:\t\t\t{}".format(item, UI.output_parameter_list.get(item)))
         else:
             print("{}:\t\t{}".format(item, UI.output_parameter_list.get(item)))
-
     print("---------------------------------------")
 

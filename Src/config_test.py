@@ -14,7 +14,7 @@ config["DEFAULT"] = {"Input_dir_path" : "C:/measurements",
                      "Output_dir_path": "C:/measurements/modify",
                      "Output_filename": "write_file_T",
                      "Instrument"     : "Keysight DAQ970A",
-                     "Num_meas"  : "10",
+                     "Num_meas"  : "11",
                      "Time_meas" : "1"
                      }
 

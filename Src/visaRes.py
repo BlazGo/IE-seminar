@@ -27,7 +27,6 @@ class pyVisDAQ():
 
         self.start_time = datetime.now()
         print("\n---------------------------------------------------")
-        print("Start time: {}\n".format(self.start_time.strftime("%Y/%m/%d %H:%M:%S")))
         print("Initializing instrument resources...")
 
         self.sim = sim

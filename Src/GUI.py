@@ -42,6 +42,8 @@ class simpleUI():
         self.output_filename = tk.StringVar()
         self.output_filename.set("default out filename")
         self.instrument = "Keysight DAQ970A"
+        self.meas_num = 11
+        self.meas_time = 1
 
         # Frames setup
         input_frame = tk.Frame(bg = self.bg_color, relief = tk.SUNKEN, borderwidth = 3)
@@ -104,6 +106,22 @@ class simpleUI():
             height = 1
             )
 
+        lbl_meas_num = tk.Label(
+            master = other_frame,
+            text = "Stevilo zajemov",
+            bg = self.lbl_color,
+            width = 25,
+            height = 1
+            )
+
+        lbl_meas_time = tk.Label(
+            master = other_frame,
+            text = "Cas meritve",
+            bg = self.lbl_color,
+            width = 25,
+            height = 1
+            )
+
 
         # Buttons functions #
         #------------------------------#
@@ -117,6 +135,7 @@ class simpleUI():
             if self.input_dir_path == "":
                 self.input_dir_path = temp
             else:
+                ent_in_dir.delete(0, "end")
                 ent_in_dir.insert(0, self.input_dir_path)
 
         def get_out_dir_path():
@@ -126,6 +145,7 @@ class simpleUI():
             if self.output_dir_path == "":
                 self.output_dir_path = temp
             else:
+                ent_out_dir.delete(0, "end")
                 ent_out_dir.insert(0, self.output_dir_path)
 
         def abort_program():
@@ -213,16 +233,29 @@ class simpleUI():
             bg = self.ent_color,
             width = 60
             )
+        
+        ent_meas_num = tk.Entry(
+            master = other_frame,
+            textvariable = self.meas_num,
+            bg = self.ent_color,
+            width = 60
+            )
+        
+        ent_meas_time = tk.Entry(
+            master = other_frame,
+            textvariable = self.meas_time,
+            bg = self.ent_color,
+            width = 60
+            )
 
 
         # Set default #
         #------------------------------#
         ent_in_dir.insert(0, self.input_dir_path)
-        #ent_in_name.insert(0, self.input_filename.get())
         ent_out_dir.insert(0, self.output_dir_path)
-        #ent_out_name.insert(0, self.output_filename.get())
         ent_instrument.insert(0, self.instrument)
-
+        ent_meas_num.insert(0, self.meas_num)
+        ent_meas_time.insert(0, self.meas_time)
 
         # Draw #
         #------------------------------#
@@ -241,8 +274,13 @@ class simpleUI():
 
         lbl_instrument.grid(row = 0, column = 0, padx=5, pady=5)
         ent_instrument.grid(row = 0, column = 1, padx=5, pady=5)
-        btn_save_and_continue.grid(row = 2, column = 2, padx=5, pady=5)
-        btn_abort_program.grid(row = 2, column = 0, padx=5, pady=5)
+        lbl_meas_num.grid(row = 1, column = 0, padx=5, pady=5)
+        ent_meas_num.grid(row = 1, column = 1, padx=5, pady=5)
+        lbl_meas_time.grid(row = 2, column = 0, padx=5, pady=5)
+        ent_meas_time.grid(row = 2, column = 1, padx=5, pady=5)
+    
+        btn_abort_program.grid(row = 3, column = 0, padx=5, pady=5)
+        btn_save_and_continue.grid(row = 3, column = 2, padx=5, pady=5)
 
         # Main loop #
         #------------------------------#
@@ -252,11 +290,13 @@ class simpleUI():
         # Pack output parameters #
         #------------------------------#
         self.output_parameter_list = {
-            "Input folder path" : self.input_dir_path,
-            "Input file name"   : self.input_filename.get(),
-            "Ouput folder path" : self.output_dir_path,
-            "Output file name"  : self.output_filename.get(),
-            "Instrument"        : self.instrument
+            "Input dir path"    : self.input_dir_path,
+            "Input filename"    : self.input_filename.get(),
+            "Ouput dir path"    : self.output_dir_path,
+            "Output filename"   : self.output_filename.get(),
+            "Instrument"        : self.instrument,
+            "Meas num"          : self.meas_num,
+            "Meas time"         : self.meas_time
             }
 
 if __name__ == "__main__":

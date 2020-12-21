@@ -5,11 +5,9 @@ import os
 import time
 import random
 import configparser
-from visaRes import VisVmeter
+from datetime import datetime
+from visaRes import pyVisDAQ
 from GUI import simpleUI
-
-
-print("Starting python script...")
 
 """
 Script that reads the defined file line by line and adds temperature at the end.
@@ -31,19 +29,55 @@ class read_write_Func():
     """
     
     def __init__(self):
+        self.start_time = datetime.now()
+        print("\n---------------------------------------------------")
+        print("Start time: {}\n".format(self.start_time.strftime("%Y/%m/%d %H:%M:%S")))
+
         self.interval = 1 # seconds interval of repetition
         self.curr_line = None
         self.old_line = None
         self.lines_written = 0
-
-        self.Tmeter = VisVmeter()
 
         self.Input_dir_path = ""
         self.Input_filename = ""
         self.Output_dir_path = ""
         self.Output_filename = ""
         self.Instrument_type = ""       
+        self.Meas_num = 11
+        self.Meas_time = 1
 
+        self.read_config_file()
+
+        self.print_parameters()
+
+        input_parameters = {
+            "Input dir path"    : self.Input_dir_path,
+            "Input filename"    : self.Input_filename,
+            "Output dir path"   : self.Output_dir_path,
+            "Output filename"   : self.Output_filename,
+            "Instrument"        : self.Instrument_type,
+            "Meas num"          : self.Meas_num,
+            "Meas time"         : self.Meas_time
+            }
+
+        UI = simpleUI(input_parameters)
+        new_parameters = UI.output_parameter_list
+
+        self.Input_dir_path = new_parameters.get("Input dir path")
+        self.Input_filename = new_parameters.get("Input filename")
+        self.Output_dir_path = new_parameters.get("Output dir path")
+        self.Output_filename =  new_parameters.get("Output filename")
+        self.Instrument_type = new_parameters.get("Instrument")
+        self.Meas_num = new_parameters.get("Meas_num")
+        self.Meas_time = new_parameters.get("Meas_time")
+
+        self.print_parameters()
+
+        self.Tmeter = pyVisDAQ(sim = True)
+
+        print("Initialized...\n")
+
+    def read_config_file(self):
         try:
             config = configparser.ConfigParser()
             config.read("meas_setup.ini")
@@ -63,42 +97,28 @@ class read_write_Func():
             print("Read config file parameters.")
 
         except:
-            print("Possible error with configuration.")
+            print("ERROR with configuration.")
             pass
 
-        print("\nDefault:\nFolder to read: {}\nFile to read: {}\nFolder to write: {}\nNew filename: {}\nInstrument: {}\n".format(
+    def print_parameters(self):
+        print("\nDefault:\nFolder to read: {}\nFile to read: {}\nFolder to write: {}\nNew filename: {}\nInstrument: {}\nMeasurement num: {}\nMeasurement time: {}\n".format(
             self.Input_dir_path,     
             self.Input_filename, 
             self.Output_dir_path, 
             self.Output_filename,
-            self.Instrument_type)
-            )
-
-        input_parameters = {
-            "Input dir path"    : self.Input_dir_path,
-            "Input filename"    : self.Input_filename,
-            "Output dir path"   : self.Output_dir_path,
-            "Output filename"   : self.Output_filename,
-            "Instrument"        : self.Instrument_type
-            }
-
-        UI = simpleUI(input_parameters)
-        new_parameters = UI.output_parameter_list
-
-        self.Input_dir_path = new_parameters.get("Input dir path")
-        self.Input_filename = new_parameters.get("Input filename")
-        self.Output_dir_path = new_parameters.get("Output dir path")
-        self.Output_filename =  new_parameters.get("Output filename")
-        self.Instrument_type = new_parameters.get("Instrument")
-
-        print("Initialized...\n")
+            self.Instrument_type,
+            self.Meas_num,
+            self.Meas_time)
+            )     
 
     def wait_file(self):
         # check if wanted file is already created and read it if not wait.
         while True:
             try:
-                self.old_file = open(os.path.join(self.Input_dir_path, self.Input_filename), "r")
-                self.new_file = open(self.Output_dir_path, self.Output_filename, "a")
+                self.old_file = open(os.path.join(  self.Input_dir_path, 
+                                                    self.Input_filename), "r")
+                self.new_file = open(   self.Output_dir_path, 
+                                        self.Output_filename, "a")
                 print("File created. Moving on...")
                 break
             except:
@@ -106,11 +126,17 @@ class read_write_Func():
                 time.sleep(2)
                 pass
     
-    def copy_heading(self):
-        # Copies the first eight ines and adds Temperature symbol at the end
-        heading = self.old_file.readlines()[0:8]
+    def parse_heading(self):
+        # Copies the first eight lines and adds Temperature symbol at the end
+        og_file = self.old_file.readlines()
+        heading = og_file[0:8]
         heading[-1] = heading[-1].rstrip("\n") + "T (°C)\n" # add temperature "column"
+        self.new_file.writelines("Start time: {}\tUsed instrument: {}\tMeas num: {}\tMeas time: {}".format( self.start_time,
+                                                                                                            self.Instrument_type, 
+                                                                                                            self.Meas_num, 
+                                                                                                            self.Meas_time))
         self.new_file.writelines(heading)
+        self.curr_line ,self.old_line = og_file[-1]
 
     def check_for_newline(self):
         # get last line in file
@@ -122,10 +148,12 @@ class read_write_Func():
             print("No lines to copy yet...")
             pass
 
-        if self.curr_line is self.old_line:
+        if self.curr_line == self.old_line:
             print("No new line...")
-        elif self.curr_line is not self.old_line:
+
+        elif self.curr_line != self.old_line:
             print("New line detected. Writing...")
+
             temp = self.Tmeter.getMeasurement() # Get temp value
             self.copy_line(self.new_file, self.curr_line, temp)
             self.old_line = self.curr_line
@@ -147,7 +175,7 @@ if __name__ == "__main__":
         
     rw = read_write_Func()
     rw.wait_file()
-    rw.copy_heading()
+    rw.parse_heading()
 
     try:
         while True:

@@ -1,9 +1,12 @@
 print("Running test_data_creator")
 
 from datetime import date
+import os
 from os import listdir
 from os.path import isfile, join
 import time
+import tkinter as tk
+from tkinter import filedialog
 
 """
 
@@ -14,12 +17,13 @@ import time
 
 """
 
-original_file_path = "C:/Users/b_gorjanc/Documents/Project_2/N4877 AM550 Core 303 230V 50Hz temp R.MTREZ"
-path_to_create = "C:/Users/b_gorjanc/Documents/Project_2/Measurement_files/"
+original_file_path = "C:/Users/blazg/Dekstop/FE_faks/3-Semester/SRM-Seminar_iz_robotike_in_merjenj/Code/N4877 AM550 Core 303 230V 50Hz temp R.MTREZ"
+original_file_path = filedialog.askopenfilename()
+path_to_create = "C:/Users/blazg/Dekstop/FE_faks/3-Semester/SRM-Seminar_iz_robotike_in_merjenj/Code/"
 
 # Quality of life code checks the files of specific name and adds the next index increment
 counter = 0
-filename = path_to_create + "N4877 AM550 Core 303 230V 50Hz temp R.txt"
+filename = path_to_create + "new.txt"
 #filename = path_to_create + str(date.today()) + "_Test_{}.txt" 
 while isfile(filename.format(counter)):
     counter += 1
@@ -28,7 +32,8 @@ filename_to_create = filename.format(counter)
 # Open the template file and read the contents
 with open(original_file_path, "r") as og_file:
     original_lines = og_file.readlines()
-new_file = open(filename_to_create, "x")
+
+new_file = open("new.txt", "x")
 
 # Heading edit and write
 heading = original_lines[0:8]

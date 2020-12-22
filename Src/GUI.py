@@ -292,7 +292,7 @@ class simpleUI():
         self.output_parameter_list = {
             "Input dir path"    : self.input_dir_path,
             "Input filename"    : self.input_filename.get(),
-            "Ouput dir path"    : self.output_dir_path,
+            "Output dir path"    : self.output_dir_path,
             "Output filename"   : self.output_filename.get(),
             "Instrument"        : self.instrument,
             "Meas num"          : self.meas_num,

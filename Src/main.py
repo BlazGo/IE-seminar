@@ -68,8 +68,8 @@ class read_write_Func():
         self.Output_dir_path = new_parameters.get("Output dir path")
         self.Output_filename =  new_parameters.get("Output filename")
         self.Instrument_type = new_parameters.get("Instrument")
-        self.Meas_num = new_parameters.get("Meas_num")
-        self.Meas_time = new_parameters.get("Meas_time")
+        self.Meas_num = new_parameters.get("Meas num")
+        self.Meas_time = new_parameters.get("Meas time")
 
         self.print_parameters()
 

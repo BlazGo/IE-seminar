@@ -286,7 +286,6 @@ class simpleUI():
         #------------------------------#
         mainWindow.mainloop()
 
-
         # Pack output parameters #
         #------------------------------#
         self.output_parameter_list = {

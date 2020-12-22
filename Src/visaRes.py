@@ -91,6 +91,18 @@ class pyVisDAQ():
         print("Done.")
 
     def meas_process(self, T_lsit):
+        """
+        Input:
+            - list of temperatures
+        Output:
+            - processed temp
+        We first use median to remove outliers with certain tolerance.
+        Then mean is calculated from the remaining temperatures.
+        It is strongly recommended to use more than 10 measurements
+        and that it is an odd number. It could happen with too strict
+        tolerance and wild measurements that no measurement would satisfy
+        the criteria.
+        """
         T_arr = np.array(T_lsit)
         median = np.median(T_arr)
 
@@ -102,8 +114,7 @@ class pyVisDAQ():
                 new_meas.append(temp)
 
         avg_temp = np.mean(np.array(new_meas))
-
-        print(new_meas)
+        print("Temperature: {}".format(avg_temp))
         return avg_temp
 
     def get_temp(self):
@@ -134,11 +145,11 @@ class pyVisDAQ():
                 self.temp = -1
         else:
             for measurement in range(0, self.meas_num):
-                self.temp = self.temp + (random.randrange(0, 10) / 10) - 0.5
+                self.temp = self.temp + (random.randrange(0, 10) -5)/10
                 meas_list.append(self.temp)
                 time.sleep(time_for_one)
 
-        self.temp = meas_process(meas_list, tol = 0.3)
+        self.temp = self.meas_process(meas_list)
         return self.temp
 
     def close_session(self):

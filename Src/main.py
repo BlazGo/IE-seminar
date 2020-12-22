@@ -43,8 +43,8 @@ class read_write_Func():
         self.Output_dir_path = ""
         self.Output_filename = ""
         self.Instrument_type = ""       
-        self.Meas_num = 11
-        self.Meas_time = 1
+        self.Meas_num = 20
+        self.Meas_time = 0.5
 
         self.read_config_file()
 
@@ -117,8 +117,9 @@ class read_write_Func():
             try:
                 self.old_file = open(os.path.join(  self.Input_dir_path, 
                                                     self.Input_filename), "r")
-                self.new_file = open(   self.Output_dir_path, 
-                                        self.Output_filename, "a")
+
+                self.new_file = open(os.path.join(  self.Output_dir_path, 
+                                                    (self.Output_filename + ".txt")), "a")
                 print("File created. Moving on...")
                 break
             except:
@@ -131,12 +132,12 @@ class read_write_Func():
         og_file = self.old_file.readlines()
         heading = og_file[0:8]
         heading[-1] = heading[-1].rstrip("\n") + "T (°C)\n" # add temperature "column"
-        self.new_file.writelines("Start time: {}\tUsed instrument: {}\tMeas num: {}\tMeas time: {}".format( self.start_time,
-                                                                                                            self.Instrument_type, 
-                                                                                                            self.Meas_num, 
-                                                                                                            self.Meas_time))
+        self.new_file.writelines("Start time: {}\tUsed instrument: {}\tMeas num: {}\tMeas time: {}\n".format(   self.start_time,
+                                                                                                                self.Instrument_type, 
+                                                                                                                self.Meas_num, 
+                                                                                                                self.Meas_time))
         self.new_file.writelines(heading)
-        self.curr_line ,self.old_line = og_file[-1]
+        self.curr_line = self.old_line = og_file[-1]
 
     def check_for_newline(self):
         # get last line in file
@@ -145,16 +146,15 @@ class read_write_Func():
                 pass
             self.curr_line = line
         except:
-            print("No lines to copy yet...")
             pass
-
+        
         if self.curr_line == self.old_line:
             print("No new line...")
 
         elif self.curr_line != self.old_line:
             print("New line detected. Writing...")
 
-            temp = self.Tmeter.getMeasurement() # Get temp value
+            temp = self.Tmeter.get_temp() # Get temp value
             self.copy_line(self.new_file, self.curr_line, temp)
             self.old_line = self.curr_line
     

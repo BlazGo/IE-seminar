@@ -76,11 +76,14 @@ class file_create():
         for i in range(8,len(self.original_lines)):
             self.new_file.write(self.original_lines[i]) # write i-th line
             self.new_file.flush() # refresh file? update
-            time.sleep(4)
+            time.sleep(6)
             print("New line written\t{}".format(time.time()))
 
-
-fc = file_create()
-fc.create()
-fc.create_heading()
-fc.main_loop()
+if __name__ == "__main__":
+    try:
+        fc = file_create() 
+        fc.create()
+        fc.create_heading()
+        fc.main_loop()
+    except KeyboardInterrupt:
+        print("CTRL + c pressed")

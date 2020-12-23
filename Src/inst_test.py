@@ -3,6 +3,7 @@ import time
 import numpy as np
 
 class KeyDAQ():
+    
     def __init__(self):
         self.rm = pyvisa.ResourceManager()
         print("Found resources: {}" .format(self.rm.list_resources()))
@@ -54,7 +55,7 @@ class KeyDAQ():
     def meas_process(self):
         temp_array_raw = np.asarray(self.temp_array)
         shape = np.shape(temp_array_raw)
-        print(shape)
+        #print(shape)
 
         medians = np.median(temp_array_raw, axis = 1)
         
@@ -72,7 +73,7 @@ class KeyDAQ():
             processed_temp.append(np.mean(np.asarray(channel)))
 
         #print(temp_whole)
-        print(processed_temp)
+        #print(processed_temp)
         self.channel_temps = processed_temp
         return self.channel_temps
 

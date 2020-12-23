@@ -158,10 +158,12 @@ class read_write_Func():
             self.Tmeter.get_temp() # Get temp value
             temp = self.Tmeter.meas_process() 
 
+            print(temp)
+
             temp_string = ""
 
             for num in temp:
-                temp_string + "\t" + str(round(num))
+                temp_string = temp_string + "\t" + str(round(num, 3))
 
             self.copy_line(self.new_file, self.curr_line, temp_string)
             self.old_line = self.curr_line

@@ -21,6 +21,12 @@ class KeyDAQ():
         response = self.inst.query("*IDN?")
         print("Instrument response to *IDN?: {}".format(response))
 
+    def scan_channels(self):
+        # if nothing is connected value -9.9e+37
+        self.channel_start = 101
+        self.channel_end = 111
+        self.channel_num = self.channel_end - self.channel_start
+
     def get_temp(self):
         Tcouple = "J"
         resolution = "0.01"
@@ -68,13 +74,7 @@ class KeyDAQ():
         #print(temp_whole)
         print(processed_temp)
         self.channel_temps = processed_temp
-
-    def scan_channels(self):
-        # if nothing is connected value -9.9e+37
-        self.channel_start = 101
-        self.channel_end = 111
-        self.channel_num = self.channel_end - self.channel_start
-        pass
+        return self.channel_temps
 
     def close_session(self):
         self.rm.close()

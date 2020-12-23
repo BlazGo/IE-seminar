@@ -6,7 +6,7 @@ import time
 import random
 import configparser
 from datetime import datetime
-from visaRes import pyVisDAQ
+from inst_test import KeyDAQ
 from GUI import simpleUI
 
 """
@@ -73,7 +73,8 @@ class read_write_Func():
 
         self.print_parameters()
 
-        self.Tmeter = pyVisDAQ(sim = True)
+        self.Tmeter = KeyDAQ()
+        self.Tmeter.scan_channels()
 
         print("Initialized...\n")
 
@@ -154,12 +155,19 @@ class read_write_Func():
         elif self.curr_line != self.old_line:
             print("New line detected. Writing...")
 
-            temp = self.Tmeter.get_temp() # Get temp value
-            self.copy_line(self.new_file, self.curr_line, temp)
+            self.Tmeter.get_temp() # Get temp value
+            temp = self.Tmeter.meas_process() 
+
+            temp_string = ""
+
+            for num in temp:
+                temp_string + "\t" + str(round(num))
+
+            self.copy_line(self.new_file, self.curr_line, temp_string)
             self.old_line = self.curr_line
     
-    def copy_line(self, file_to_write, line, temp = 0):
-        file_to_write.write(line.strip("\n") + "\t" + str(round(temp, 2)) + "\n") # Vrite the read line and add temperature at the end
+    def copy_line(self, file_to_write, line, temp):
+        file_to_write.write(line.strip("\n") + temp + "\n") # Vrite the read line and add temperature at the end
         self.lines_written += 1
         print("Line %i written..." % int(self.lines_written))
 

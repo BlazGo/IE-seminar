@@ -18,6 +18,9 @@ class pyVisDAQ():
         - get measurement
         - close session
         - set measurement and instrument parameters
+
+    TODO:
+        - automatical adjustment with number of channels of temp
     """
 
     def __init__(self, sim=False, meas_num=11, meas_time=1):
@@ -40,7 +43,7 @@ class pyVisDAQ():
         self.resolution = "0.01"    # resolution (not sure if it actually applies)
         self.channels = "105:107"   # what channels to scan
 
-        connection = 0
+        self.connection = 0
 
         if self.sim == True:
             print("Simulation (no inst., rand. temp)")
@@ -52,14 +55,14 @@ class pyVisDAQ():
                 print("ERROR with initialization.")
             
             print("Trying to connect")
-            while connection == 0:
+            while self.connection == 0:
                 # will continue to try to connect
                 try:
                     self.inst = self.rm.open_resource("USB0::0x2A8D::0x5001::MY58004219::0::INSTR",
                                                             read_termination = "\n", 
                                                             write_termination = "\n")
-                    response = self.instrument.query("?IDN")
-                    print("Instrument response to ?IDN: {}".format(response))
+                    response = self.inst.query("*IDN?")
+                    print("Instrument response to *IDN?: {}".format(response))
                 
                     if response != "ERROR":
                         self.connection = 1
@@ -137,17 +140,21 @@ class pyVisDAQ():
         if self.sim == False:
             try:
                 # iterate over the given number of measurements
-                for measurement in range(0, self.meas_num):
-                    self.temp = self.temp = self.inst.query_ascii_values(command)
+                i = 0
+                while i <= self.meas_num:
+                    self.temp = self.inst.query_ascii_values(command)
                     meas_list.append(self.temp)
+                    i += 1
             except:
                 print("ERROR with measurement.")
                 self.temp = -1
         else:
-            for measurement in range(0, self.meas_num):
+            i = 0
+            while i  <= self.meas_num:
                 self.temp = self.temp + (random.randrange(0, 10) -5)/10
                 meas_list.append(self.temp)
                 time.sleep(time_for_one)
+                i += 1
 
         self.temp = self.meas_process(meas_list)
         return self.temp
@@ -169,7 +176,7 @@ class pyVisDAQ():
 if __name__ == "__main__":
     # if everything works no errors should be raised
     
-    inst = pyVisDAQ(sim = True)
+    inst = pyVisDAQ(sim = False)
 
     start = time.time()
     print("Test temp: {0:.4f}".format(inst.get_temp()))

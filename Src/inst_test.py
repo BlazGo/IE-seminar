@@ -15,8 +15,7 @@ class KeyDAQ():
         self.meas_time = 1
 
         self.inst.timeout = 4000
-        #self.inst.query_delay = 0 # Doesnt do much lowest it can go ~140ms for 10 channels
-        # better to set to 0.1 and get ~105-220ms per channels scan just in case
+        #self.inst.query_delay = 0.0 # Doesnt do much lowest it can go ~140ms for 10 channels 0.0 default
 
         time.sleep(0.5)
         response = self.inst.query("*IDN?")
@@ -49,8 +48,6 @@ class KeyDAQ():
                 self.temp_array[meas_iteration-1,i] = temp_raw[i]
 
             meas_iteration += 1
-
-        #print(self.temp_array)
 
     def meas_process(self):
         temp_array_raw = np.asarray(self.temp_array)
@@ -85,15 +82,20 @@ class KeyDAQ():
             print("Session closed")
 
 if __name__ == "__main__":
-    inst = KeyDAQ()
-    inst.scan_channels()
+    try:
+        inst = KeyDAQ()
+        inst.scan_channels()
 
-    meas_time = time.time()
-    inst.get_temp()
-    print("Meas time: {} [ms]".format(round((time.time()-meas_time)*1000,3)))
+        meas_time = time.time()
+        inst.get_temp()
+        print("Meas time: {} [ms]".format(round((time.time()-meas_time)*1000,3)))
 
-    calc_time = time.time()
-    inst.meas_process()
-    print("Calc time: {} [ms]".format(round((time.time()-calc_time)*1000,3)))
+        calc_time = time.time()
+        inst.meas_process()
+        print("Calc time: {} [ms]".format(round((time.time()-calc_time)*1000,3)))
 
-    inst.close_session()
+        inst.close_session()
+        
+    except KeyboardInterrupt as e:
+        print("Keyboard interrupt {}".format(e))
+        inst.close_session()

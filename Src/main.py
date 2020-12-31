@@ -6,6 +6,7 @@ import time
 import random
 import configparser
 from datetime import datetime
+
 from inst_test import KeyDAQ
 from GUI import simpleUI
 

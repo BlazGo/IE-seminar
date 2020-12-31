@@ -44,6 +44,8 @@ class simpleUI():
         self.instrument = "Keysight DAQ970A"
         self.meas_num = 11
         self.meas_time = 1
+        self.channels = "101:111"
+
 
         # Frames setup
         input_frame = tk.Frame(bg = self.bg_color, relief = tk.SUNKEN, borderwidth = 3)
@@ -122,6 +124,13 @@ class simpleUI():
             height = 1
             )
 
+        lbl_channels = tk.Label(
+            master = other_frame,
+            text = 'Kanali "(zacetni:koncni)"',
+            bg = self.lbl_color,
+            width = 25,
+            height = 1
+            )
 
         # Buttons functions #
         #------------------------------#
@@ -248,6 +257,13 @@ class simpleUI():
             width = 60
             )
 
+        ent_channels = tk.Entry(
+            master = other_frame,
+            textvariable = self.channels,
+            bg = self.ent_color,
+            width = 60
+            )
+
 
         # Set default #
         #------------------------------#
@@ -256,6 +272,7 @@ class simpleUI():
         ent_instrument.insert(0, self.instrument)
         ent_meas_num.insert(0, self.meas_num)
         ent_meas_time.insert(0, self.meas_time)
+        ent_channels.insert(0, self.channels)
 
         # Draw #
         #------------------------------#
@@ -278,9 +295,11 @@ class simpleUI():
         ent_meas_num.grid(row = 1, column = 1, padx=5, pady=5)
         lbl_meas_time.grid(row = 2, column = 0, padx=5, pady=5)
         ent_meas_time.grid(row = 2, column = 1, padx=5, pady=5)
-    
-        btn_abort_program.grid(row = 3, column = 0, padx=5, pady=5)
-        btn_save_and_continue.grid(row = 3, column = 2, padx=5, pady=5)
+        lbl_channels.grid(row = 3, column = 0, padx=5, pady=5)
+        ent_channels.grid(row = 3, column = 1, padx=5, pady=5)
+
+        btn_abort_program.grid(row = 4, column = 0, padx=5, pady=5)
+        btn_save_and_continue.grid(row = 4, column = 2, padx=5, pady=5)
 
         # Main loop #
         #------------------------------#
@@ -295,7 +314,8 @@ class simpleUI():
             "Output filename"   : self.output_filename.get(),
             "Instrument"        : self.instrument,
             "Meas num"          : self.meas_num,
-            "Meas time"         : self.meas_time
+            "Meas time"         : self.meas_time,
+            "Channels"          : self.channels
             }
 
 if __name__ == "__main__":

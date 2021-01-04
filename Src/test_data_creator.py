@@ -9,13 +9,12 @@ import tkinter as tk
 from tkinter import filedialog
 
 """
-
 - Opens template file and reads it
 - Creates new file
     - Copies heading and adds T [°C]
     - In loop writes new lines in intervals
-
 """
+
 
 class file_create():
 

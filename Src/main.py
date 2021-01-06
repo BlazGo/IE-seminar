@@ -7,7 +7,7 @@ import random
 import configparser
 from datetime import datetime
 
-from inst_test import KeyDAQ
+from inst_lib import KeyDAQ
 from GUI import simpleUI
 
 """

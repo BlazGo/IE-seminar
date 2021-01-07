@@ -1,4 +1,4 @@
-import configparser
+from configparser import ConfigParser
 
 """
 Create the config.ini file
@@ -10,14 +10,16 @@ Output:
 
 filename = "meas_setup.ini" # Output filename
 
-config = configparser.ConfigParser()
-config["DEFAULT"] = {"Input_dir_path" : "C:/measurements",
-                     "Input_filename" : "read_file",
-                     "Output_dir_path": "C:/measurements/modify",
-                     "Output_filename": "write_file_T",
-                     "Instrument"     : "Keysight DAQ970A",
-                     "Meas_num"  : "11",
-                     "Wait_time" : "1"
+config = ConfigParser()
+config["DEFAULT"] = {"Input_dir_path"   : "C:/measurements",
+                     "Input_filename"   : "read_file",
+                     "Output_dir_path"  : "C:/measurements/modify",
+                     "Output_filename"  : "write_file_T",
+                     "Instrument"       : "Keysight DAQ970A",
+                     "Meas_num"         : "11",
+                     "Wait_time"        : "1",
+                     "Channels_start"   : "101",
+                     "Channels_end"     : "104"
                      }
 
 config["FILE_SETUP"] = {"Input_dir_path" : "C:/measurements",
@@ -26,10 +28,11 @@ config["FILE_SETUP"] = {"Input_dir_path" : "C:/measurements",
                         "Output_filename": "write_file_T"
                         }
 
-config["INSTRUMENT_SETUP"] = {  "Instrument": "Keysight DAQ970A",
-                                "Meas_num"  : "11",
-                                "Wait_time" : "1",
-                                "Channels"  : "101:104"
+config["INSTRUMENT_SETUP"] = {  "Instrument"        : "Keysight DAQ970A",
+                                "Meas_num"          : "11",
+                                "Wait_time"         : "1",
+                                "Channels_start"    : "101",
+                                "Channels_end"      : "104"
                                 }
 
 

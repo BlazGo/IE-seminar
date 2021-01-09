@@ -1,9 +1,7 @@
 print("Running test_data_creator")
 
-from datetime import date
+from datetime import datetime
 import os
-from os import listdir
-from os.path import isfile, join
 import time
 import tkinter as tk
 from tkinter import filedialog
@@ -58,8 +56,8 @@ class file_create():
             self.original_lines = og_file.readlines()
         
         counter = 0
-        filename = self.new_file_path + "/new.txt"
-        while isfile(filename.format(counter)):
+        filename = self.new_file_path + "/input_file.txt"
+        while os.path.isfile(filename.format(counter)):
             counter += 1
         filename_to_create = filename.format(counter)
         self.new_file = open(filename_to_create, "x")
@@ -72,11 +70,17 @@ class file_create():
 
     def main_loop(self):
         print("Entered main loop...")
+        i = 1
         for i in range(8,len(self.original_lines)):
             self.new_file.write(self.original_lines[i]) # write i-th line
             self.new_file.flush() # refresh file? update
-            time.sleep(6)
-            print("New line written\t{}".format(time.time()))
+
+            now = datetime.now()
+            curr_time = now.strftime("%d/%m/%Y %H:%M:%S")
+            print("[INFO] Line written: {}\tTime: {}".format(i-7, curr_time))
+            time.sleep(5)
+
+        print("[INFO] Done")
 
 if __name__ == "__main__":
     try:
@@ -84,5 +88,6 @@ if __name__ == "__main__":
         fc.create()
         fc.create_heading()
         fc.main_loop()
+        input("Press Enter to close")
     except KeyboardInterrupt:
         print("CTRL + c pressed")

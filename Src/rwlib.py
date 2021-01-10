@@ -163,9 +163,12 @@ class fileFunc:
         line = None # Referenced before assignment error
         for line in self.input_file:
             pass
+        if line == None:
+            return
+
         self.new_line = line
 
-    def check_newline(self):
+    def check_newline(self):        
         if self.new_line == self.old_line:
             # There is no new line return FALSE
             return False
@@ -204,10 +207,10 @@ if __name__ == "__main__":
     fc = fileFunc()
     fc.read_config()
 
-    if fc.check_f_exists(fc.OUTPUT_FILEPATH) == True:
+    if fc.check_f_exists(fc.OUTPUT_FILE_PATH) == True:
         raise ValueError
 
-    fc.create_file(fc.INPUT_FILEPATH, fc.INPUT_FILENAME, fc.OUTPUT_FILEPATH, fc.OUTPUT_FILENAME)
+    fc.create_file(fc.INPUT_FILE_PATH, fc.INPUT_FILENAME, fc.OUTPUT_FILE_PATH, fc.OUTPUT_FILENAME)
     fc.write_heading()
     
     try:

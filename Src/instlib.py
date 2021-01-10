@@ -6,7 +6,7 @@ class KeyDAQ():
     
     def __init__(self):
         self.rm = pyvisa.ResourceManager()
-        print("Found resources: {}" .format(self.rm.list_resources()))
+        print(f"Found resources: {self.rm.list_resources()}")
 
         self.inst = self.rm.open_resource("USB0::0x2A8D::0x5001::MY58004219::0::INSTR",
                                            read_termination = "\n", 
@@ -18,8 +18,9 @@ class KeyDAQ():
         #self.inst.query_delay = 0.0 # Doesnt do much lowest it can go ~140ms for 10 channels 0.0 default
 
         time.sleep(0.5)
+    def check_response(self):
         response = self.inst.query("*IDN?")
-        print("Instrument response to *IDN?: {}".format(response))
+        print(f"[INFO] Instrument response to *IDN?: {response}")
 
     def scan_channels(self):
         # if nothing is connected value -9.9e+37
@@ -30,19 +31,17 @@ class KeyDAQ():
     def get_temp(self):
         Tcouple = "J"
         resolution = "0.01"
-        channels = "{}:{}".format(self.channel_start, self.channel_end)
-        command = "MEASure:TEMPerature:TCouple? {},{},(@{})".format(Tcouple, 
-                                                                    resolution, 
-                                                                    channels)
+        channels = f"{self.channel_start}:{self.channel_end}"
+        command = f"MEASure:TEMPerature:TCouple? {Tcouple},{resolution},(@{channels})"
         
         self.temp_array = np.zeros((self.meas_num, self.channel_num))
 
         meas_iteration = 1
         while meas_iteration <= self.meas_num:
-            print("Current iteration: {}".format(meas_iteration))
+            print(f"Current iteration: {meas_iteration}")
             start = time.time()
             temp_raw = self.inst.query_ascii_values(command)
-            print("Instrument time: {} [ms]".format(round((time.time()-start)*1000,3)))
+            print(f"Instrument time: {round((time.time()-start)*1000,3)} [ms]")
 
             for i in range(0, len(temp_raw)-1):
                 self.temp_array[meas_iteration-1,i] = temp_raw[i]
@@ -77,9 +76,9 @@ class KeyDAQ():
     def close_session(self):
         self.rm.close()
         try:
-            print("Found resources: {}" .format(self.rm.list_resources()))
+            print(f"Found resources: {self.rm.list_resources()}")
         except pyvisa.errors.InvalidSession: # error when thereis invalid session
-            print("Session closed")
+            print(f"Session closed")
 
 if __name__ == "__main__":
     try:
@@ -88,14 +87,14 @@ if __name__ == "__main__":
 
         meas_time = time.time()
         inst.get_temp()
-        print("Meas time: {} [ms]".format(round((time.time()-meas_time)*1000,3)))
+        print(f"Meas time: {round((time.time()-meas_time)*1000,3)} [ms]")
 
         calc_time = time.time()
         inst.meas_process()
-        print("Calc time: {} [ms]".format(round((time.time()-calc_time)*1000,3)))
+        print(f"Calc time: {round((time.time()-calc_time)*1000,3)} [ms]")
 
         inst.close_session()
         
     except KeyboardInterrupt as e:
-        print("Keyboard interrupt {}".format(e))
+        print(f"Keyboard interrupt {e}")
         inst.close_session()

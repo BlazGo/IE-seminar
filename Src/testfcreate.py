@@ -14,7 +14,7 @@ from tkinter import filedialog
 """
 
 
-class file_create():
+class file_create:
 
     def __init__(self):
 
@@ -77,7 +77,7 @@ class file_create():
 
             now = datetime.now()
             curr_time = now.strftime("%d/%m/%Y %H:%M:%S")
-            print("[INFO] Line written: {}\tTime: {}".format(i-7, curr_time))
+            print(f"[INFO] Line written: {i-7}\tTime: {curr_time}")
             time.sleep(5)
 
         print("[INFO] Done")

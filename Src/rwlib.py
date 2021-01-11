@@ -50,7 +50,7 @@ class fileFunc:
         self.output_file = None
         self.new_line = None
         self.old_line = None
-        self.line_num = 0
+        self.line_num = 1
 
     def read_config(self, name="config.ini"):
         """ Reads the configuration file and saves variables
@@ -132,6 +132,17 @@ class fileFunc:
             return True
         else:
             return False
+    def check_d_exists(self, dirpath):
+       # Checks if the defined output file already exists
+       # Output:
+       #    - bool (True, False)
+
+        if os.path.exists(dirpath):
+            print("[WARN] File to create with this name already exists!")
+            print(f"       {dirpath}")
+            return True
+        else:
+            return False
 
     def write_heading(self):
         # Parse the heading and write to new file
@@ -183,7 +194,7 @@ class fileFunc:
         
         # For each temp
         for num in temps:
-            temp_string += "\t" + str(round(num, 2))
+            temp_string += "\t" + str(round(num, 3))
         
         # Add the temperatures at the end of the line
         return og_line.strip("\n") + temp_string + "\n"
@@ -193,8 +204,9 @@ class fileFunc:
         self.output_file.write(string_to_write)
         self.output_file.flush()
 
+        time_now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        print(f"[INFO] {time_now} Written line {self.line_num}")
         self.line_num += 1
-        print(f"[INFO] Written line {self.line_num}")
 
     def close_files(self):
         print("[INFO] Closing files")

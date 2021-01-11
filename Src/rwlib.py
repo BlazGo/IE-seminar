@@ -192,6 +192,7 @@ class fileFunc:
     def parse_line(self, og_line, temps=-1):
         temp_string = ""
         
+        print(len(temps))
         # For each temp
         for num in temps:
             temp_string += "\t" + str(round(num, 3))

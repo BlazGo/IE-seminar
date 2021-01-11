@@ -265,8 +265,12 @@ class measUI():
 
     def abort(self):
         print("[INFO] Closing")
-        self.rwfunc.close_files()
-        self.KeyDAQ.close_session()
+        try:
+            self.rwfunc.close_files()
+            self.KeyDAQ.close_session()
+        except:
+            print("[WARN] Error during shutdown.")
+            pass
         exit()
 
     def start_program(self):
@@ -389,7 +393,8 @@ class measUI():
     def check_inst_thread(self):
         self.KeyDAQ = KeyDAQ()
         self.KeyDAQ.init_inst()
-        self.KeyDAQ.check_response()
+        response = self.KeyDAQ.check_response()
+        self.txt_console.insert(tk.INSERT, f"[INFO] Instrument response to *IDN?: {response}\n")
         self.KeyDAQ.close_session()
 
 if __name__ == "__main__":

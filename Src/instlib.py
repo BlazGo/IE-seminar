@@ -16,7 +16,7 @@ class KeyDAQ():
     
     def __init__(self, meas_num=11, wait_time=1, channels_start=101, channels_end=105):
         self.rm = pyvisa.ResourceManager()
-        print(f"Found resources: {self.rm.list_resources()}")
+        print(f"[INFO] Found resources: {self.rm.list_resources()}")
 
         self.MEAS_NUM = meas_num
         self.WAIT_TIME = wait_time
@@ -32,6 +32,7 @@ class KeyDAQ():
                                            read_termination = "\n", 
                                            write_termination = "\n")
         self.inst.timeout = 4000
+        print("[INFO] Instrument initialized")
 
     def check_response(self):
         response = self.inst.query("*IDN?")
@@ -91,9 +92,9 @@ class KeyDAQ():
     def close_session(self):
         self.rm.close()
         try:
-            print(f"Found resources: {self.rm.list_resources()}")
+            print(f"[INFO] Found resources: {self.rm.list_resources()}")
         except pyvisa.errors.InvalidSession: # error when thereis invalid session
-            print(f"Session closed")
+            print(f"[INFO] Session closed")
 
 if __name__ == "__main__":
     try:

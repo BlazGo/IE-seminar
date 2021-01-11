@@ -51,6 +51,7 @@ class measUI():
         # Define UI basics
         self.root = tk.Tk()
         self.root.title("Merjenje temperature")
+        self.root.minsize(1416, 540)
         #self.root.geometry("750x360")
         self.root.configure(bg = self.color_bg)
 
@@ -59,6 +60,7 @@ class measUI():
 
         # Descriptions display
         self.lbl_clock = tk.Label(self.root, text = "*clock*", width = 18, font = self.font_M, bg = self.color_lbl, fg = self.color_text)
+        lbl_console = tk.Label(self.root, text = "Console", font = self.font_L,  bg = self.color_lbl, fg = self.color_text) 
 
         lbl_file_setup = tk.Label(self.root, text = "File setup", font = self.font_L,  bg = self.color_lbl, fg = self.color_text)        
         lbl_in_dir = tk.Label(f_frame, text = "Input file folder path", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
@@ -93,10 +95,14 @@ class measUI():
         btn_abort = tk.Button(self.root, text = "Abort", command = self.abort, font = self.font_M, width = 18, bg = self.color_btn, fg = self.color_text)
         btn_check_inst = tk.Button(m_frame, text = "Check inst", command = self.check_instrument, font = self.font_M, width = 18, bg = self.color_btn, fg = self.color_text)
 
+        self.txt_console = tk.Text(self.root, height = 25, font = self.font_I, width = 80)
+
         # Place widgets
         self.lbl_clock.grid(row = 0, column = 1, sticky = "e", padx = self.padx, pady = self.pady)
-        f_frame.grid(row = 2, column = 0, columnspan = 2, sticky = "w", padx = self.padx, pady = self.pady)
-        m_frame.grid(row = 7, column = 0, columnspan = 2, sticky = "w", padx = self.padx, pady = self.pady)
+        lbl_console.grid(row = 0, column = 2, sticky = "ew", padx = self.padx, pady = self.pady)
+
+        f_frame.grid(row = 2, column = 0, columnspan = 2, sticky = "ew", padx = self.padx, pady = self.pady)
+        m_frame.grid(row = 7, column = 0, columnspan = 2, sticky = "ew", padx = self.padx, pady = self.pady)
         
         lbl_file_setup.grid(row = 1, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
         lbl_in_dir.grid(row = 2, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
@@ -121,10 +127,12 @@ class measUI():
         self.lbl_channelsD.grid(row = 9, column = 1, sticky = "ew", padx = self.padx, pady = self.pady)
         self.lbl_wait_timeD.grid(row = 10, column = 1, sticky = "ew", padx = self.padx, pady = self.pady)
 
-        self.btn_setup.grid(row = 1, column = 1, sticky = "e", padx = self.padx, pady = self.pady)
+        self.btn_setup.grid(row = 0, column = 0, sticky = "w", padx = self.padx, pady = self.pady)
         btn_abort.grid(row = 11, column = 0, sticky = "w", padx = self.padx, pady = self.pady)
         btn_start.grid(row = 11, column = 1, sticky = "e", padx = self.padx, pady = self.pady)        
         btn_check_inst.grid(row = 7, column = 2, sticky = "e", padx = self.padx, pady = self.pady)
+
+        self.txt_console.grid(row = 1, column = 2, rowspan = 11, sticky = "w", padx = self.padx, pady = self.pady)
 
     def create_subwindow(self):
         """ Function to create config subwindow """
@@ -253,9 +261,12 @@ class measUI():
 
         # Close the subwindow
         self.subwin.destroy()
+        self.txt_console.insert(tk.INSERT, f"[INFO] New parameters saved.\n")
 
     def abort(self):
         print("[INFO] Closing")
+        self.rwfunc.close_files()
+        self.KeyDAQ.close_session()
         exit()
 
     def start_program(self):
@@ -266,6 +277,9 @@ class measUI():
                              channels_end = self.rwfunc.CHANNELS_END)
         self.KeyDAQ.init_inst()
         self.main_loopTHREAD = threading.Thread(target=self.main_loop, daemon=True)
+        
+        curr_time = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
+        self.txt_console.insert(tk.INSERT, f"[INFO] {curr_time}: Started program.\n")
         self.main_loopTHREAD.start()
 
     def main_loop(self):
@@ -280,8 +294,12 @@ class measUI():
                                 self.rwfunc.INPUT_FILENAME,
                                 self.rwfunc.OUTPUT_FILE_PATH,
                                 self.rwfunc.OUTPUT_FILENAME)
-        self.rwfunc.write_heading()
+        self.txt_console.insert(tk.INSERT, f"[INFO] Files created.\n")
 
+        self.rwfunc.write_heading()
+        self.txt_console.insert(tk.INSERT, f"[INFO] Heading written.\n")
+
+       
         try:
             timeout = 0
             while True:
@@ -290,21 +308,34 @@ class measUI():
                     print(f"[INFO] No change in last 50 checks ({50*self.rwfunc.WAIT_TIME} seconds)")
                     curr_time = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
                     print(f"[INFO] End time: {curr_time}")
+                    self.rwfunc.close_files()
+                    self.txt_console.insert(tk.INSERT, f"[INFO] No change in last 50 checks ({50*self.rwfunc.WAIT_TIME} seconds).\n")
+                    self.txt_console.insert(tk.INSERT, f"[INFO] End time: {curr_time}\n")
+
                     break
                 
                 try:
                     self.rwfunc.read_lastline()
 
-                    if self.rwfunc.check_newline() == True:
+                    if int(float(self.txt_console.index("end"))) >= 30:
+                        self.txt_console.delete(1.0, tk.END)
+
+                    if self.rwfunc.check_newline() == True:                        
                         self.KeyDAQ.acquire()
                         temps = self.KeyDAQ.process()
                         self.rwfunc.write_line(temps)
+
+                        curr_time = datetime.now().strftime("%H:%M:%S")
+                        self.txt_console.insert(tk.INSERT, f"[INFO] {curr_time}: Line {self.rwfunc.line_num} written. Temp: {temps}\n")
                         timeout = 0
+
                     elif self.rwfunc.check_newline() == False:
                         time.sleep(self.rwfunc.WAIT_TIME)
                         timeout += 1
                 except:
-                    print("[ERROR] Error occured turing main loop- Retrying...")
+                    print("[ERROR] Error occured turing main loop. Retrying...")
+                    self.txt_console.insert(tk.INSERT, f"[ERROR] Error occured turing main loop. Retrying...\n")
+
                     time.sleep(1)
 
         except KeyboardInterrupt:
@@ -351,13 +382,15 @@ class measUI():
         self.create_subwindow()
 
     def check_instrument(self):
+        print("[INFO] Checking inst connection")
+        checkInstT = threading.Thread(target=self.check_inst_thread, daemon=True)
+        checkInstT.start()
+
+    def check_inst_thread(self):
         self.KeyDAQ = KeyDAQ()
         self.KeyDAQ.init_inst()
         self.KeyDAQ.check_response()
         self.KeyDAQ.close_session()
-
-    def check_inst_thread(self):
-        pass
 
 if __name__ == "__main__":
     measUI = measUI(SIM=False)

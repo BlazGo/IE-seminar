@@ -13,17 +13,14 @@ from rwlib import fileFunc
 def do_nothing():
     print("Something")
 
-class measUI:
+class measUI():
     """
     Class with UI definition 
     """
 
-    def __init__(self):
+    def __init__(self, SIM=False):
 
-        #self.instrument = KeyDAQ()
-        self.rwfunc = fileFunc()
-        self.rwfunc.read_config()
-
+        self.SIM = SIM
         self.padx = 6
         self.pady = int(self.padx/2)
         self.color_bg = "#212121"
@@ -35,6 +32,15 @@ class measUI:
 
         self.font_L = ("", 16)
         self.font_M = ("", 12)
+
+        # Initiate class for files
+        self.rwfunc = fileFunc()
+        # Read config file and set parameters
+        self.rwfunc.read_config()
+
+        # If SIM == False use real instrument
+        if self.SIM == False:
+            self.instrument = KeyDAQ()
 
         # Define widgets
         self.initUI()
@@ -128,7 +134,7 @@ class measUI:
         f_frame = tk.Frame(self.subwin, bg = self.color_bg_s)
         m_frame = tk.Frame(self.subwin, bg = self.color_bg_s)
 
-    # Label widgets
+        # Label widgets
         lbl_file_setup = tk.Label(self.subwin, text = "File setup", font = self.font_L, bg = self.color_lbl, fg = self.color_text, relief = "ridge")
         lbl_in_dir = tk.Label(f_frame, text = "Input file folder path", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
         lbl_in_name = tk.Label(f_frame, text = "Input filename", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
@@ -144,7 +150,7 @@ class measUI:
         lbl_wait_time = tk.Label(m_frame, text = "Wait time", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
         lbl_units = tk.Label(m_frame, text = "[seconds]", bg = self.color_lbl, fg = self.color_text)
 
-    # Entry widgets
+        # Entry widgets
         self.ent_in_dir = tk.Entry(f_frame, width = 90, font = self.font_M)
         self.ent_in_dir.insert(0, self.rwfunc.INPUT_DIR_PATH)
         self.ent_in_name = tk.Entry(f_frame, width = 90, font = self.font_M)
@@ -158,7 +164,7 @@ class measUI:
         self.ent_inst_name = tk.Entry(m_frame, font = self.font_M)
         self.ent_inst_name.insert(0, self.rwfunc.INSTRUMENT_NAME)
     
-    # Spinbox widgets
+        # Spinbox widgets
         meas_num_valid = tuple(range(1, 22, 2))
         self.spi_meas_num = tk.Spinbox(m_frame, values = meas_num_valid, font = self.font_M)
         self.spi_meas_num.delete(0, "end")
@@ -176,13 +182,13 @@ class measUI:
         self.spi_wtime.delete(0, "end")
         self.spi_wtime.insert(0, self.rwfunc.WAIT_TIME)
 
-    # Button widgets
+        # Button widgets
         btn_reset = tk.Button(self.subwin, text = "Reset", command = do_nothing, width = 18, font = self.font_M, bg = self.color_btn, fg = self.color_text)
         btn_save_return = tk.Button(self.subwin, text = "Save and return", command = self.save_and_return, width = 18, font = self.font_M, bg = self.color_btn, fg = self.color_text)
         btn_cin_dir = tk.Button(f_frame, text = "Change", command = self.get_in_dir_path, width = 18, font = self.font_M, bg = self.color_btn, fg = self.color_text)
         btn_cout_dir = tk.Button(f_frame, text = "Change", command = self.get_out_dir_path, width = 18, font = self.font_M, bg = self.color_btn, fg = self.color_text)
 
-    # Widget grid (define positions and look)
+        # Widget grid (define positions and look)
         f_frame.grid(row = 1, column = 0, columnspan = 2, sticky = "w")
         m_frame.grid(row = 6, column = 0, columnspan = 2, sticky = "w")
 

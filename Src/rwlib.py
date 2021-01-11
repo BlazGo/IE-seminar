@@ -223,4 +223,4 @@ if __name__ == "__main__":
         print("Stopping...")
         pass
 
-    fileFunc.close_files()
+    fc.close_files()

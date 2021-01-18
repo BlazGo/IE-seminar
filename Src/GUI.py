@@ -68,13 +68,13 @@ class measUI():
         self.lbl_clock = tk.Label(self.root, text = "*clock*", width = 18, font = self.font_M, bg = self.color_lbl, fg = self.color_text)
         lbl_console = tk.Label(self.root, text = "Console", font = self.font_L,  bg = self.color_lbl, fg = self.color_text) 
 
-        lbl_file_setup = tk.Label(self.root, text = "File setup", font = self.font_L,  bg = self.color_lbl, fg = self.color_text)        
+        lbl_file_setup = tk.Label(f_frame, text = "File setup", font = self.font_L,  bg = self.color_lbl, fg = self.color_text)        
         lbl_in_dir = tk.Label(f_frame, text = "Input file folder path", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
         lbl_in_name = tk.Label(f_frame, text = "Input filename", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
         lbl_out_dir = tk.Label(f_frame, text = "Output file folder path", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
         lbl_out_name = tk.Label(f_frame, text = "Output filename", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
 
-        lbl_meas_setup = tk.Label(self.root, text = "Measurement setup", font = self.font_L, bg = self.color_lbl, fg = self.color_text)        
+        lbl_meas_setup = tk.Label(m_frame, text = "Measurement setup", font = self.font_L, bg = self.color_lbl, fg = self.color_text)        
         lbl_inst_name = tk.Label(m_frame, text = "Instrument", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
         lbl_meas_num = tk.Label(m_frame, text = "Measurement number", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
         lbl_channels = tk.Label(m_frame, text = "Channels", font = self.font_M, bg = self.color_lbl, fg = self.color_text)
@@ -99,7 +99,7 @@ class measUI():
         self.btn_setup = tk.Button(self.root, text = "Configure", command = self.create_subwindow, font = self.font_M, width = 18, bg = self.color_btn, fg = self.color_text)
         btn_start = tk.Button(self.root, text = "Start", command = self.start_program, font = self.font_M, width = 18, bg = self.color_btn, fg = self.color_text)
         btn_abort = tk.Button(self.root, text = "Abort", command = self.abort, font = self.font_M, width = 18, bg = self.color_btn, fg = self.color_text)
-        btn_check_inst = tk.Button(m_frame, text = "Check inst", command = self.check_instrument, font = self.font_M, width = 18, bg = self.color_btn, fg = self.color_text)
+        btn_check_inst = tk.Button(m_frame, text = "Check inst", command = self.check_instrument, font = self.font_M, width = 18, height = 1, bg = self.color_btn, fg = self.color_text)
 
         self.txt_console = tk.Text(self.root, height = 25, font = self.font_I, width = 80)
 
@@ -110,13 +110,13 @@ class measUI():
         f_frame.grid(row = 2, column = 0, columnspan = 2, sticky = "ew", padx = self.padx, pady = self.pady)
         m_frame.grid(row = 7, column = 0, columnspan = 2, sticky = "ew", padx = self.padx, pady = self.pady)
         
-        lbl_file_setup.grid(row = 1, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
+        lbl_file_setup.grid(row = 1, column = 0, sticky = "ew", columnspan = 3, padx = self.padx, pady = self.pady)
         lbl_in_dir.grid(row = 2, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
         lbl_in_name.grid(row = 3, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
         lbl_out_dir.grid(row = 4, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
         lbl_out_name.grid(row = 5, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
         
-        lbl_meas_setup.grid(row = 6, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
+        lbl_meas_setup.grid(row = 6, column = 0, sticky = "ew", columnspan = 3, padx = self.padx, pady = self.pady)
         lbl_inst_name.grid(row = 7, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
         lbl_meas_num.grid(row = 8, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
         lbl_channels.grid(row = 9, column = 0, sticky = "ew", padx = self.padx, pady = self.pady)
@@ -138,13 +138,19 @@ class measUI():
         btn_start.grid(row = 11, column = 1, sticky = "e", padx = self.padx, pady = self.pady)        
         btn_check_inst.grid(row = 7, column = 2, sticky = "e", padx = self.padx, pady = self.pady)
 
-        self.txt_console.grid(row = 1, column = 2, rowspan = 11, sticky = "w", padx = self.padx, pady = self.pady)
+        self.txt_console.grid(row = 1, column = 2, rowspan = 11, sticky = "news", padx = self.padx, pady = self.pady)
+
+        f_frame.columnconfigure(2, weight=1)
+        self.root.columnconfigure(2, weight=1)
+        self.root.rowconfigure(1, weight=1)
 
     def create_subwindow(self):
         """ Function to create config subwindow """
         # Define window basic parameters
         self.subwin = tk.Toplevel(bg = self.color_bg)
         self.subwin.title("Nastavitve")
+        self.subwin.minsize(1252, 490)
+
         #self.subwin.geometry("700x350")
 
         f_frame = tk.Frame(self.subwin, bg = self.color_bg_s)
@@ -271,15 +277,21 @@ class measUI():
 
     def abort(self):
         print("[INFO] Closing")
+        
+        # Try to correctly close files and session
         try:
-            # Try to correctly close files and session
             self.rwfunc.close_files()
+        except AttributeError:
+            print("[INFO] No file to close.")
+            pass
+
+        try:
             self.KeyDAQ.close_session()
         except:
             # Only negative in fail:
             # instrument can be falsely detected as connected
             # next time (no response or connection, just display)
-            print("[WARN] Error during shutdown.")
+            print("[WARN] Error during inst. session close.")
             pass
         # Exits the script
         exit()
@@ -319,10 +331,10 @@ class measUI():
         self.txt_console.insert(tk.INSERT, f"[INFO] Heading written.\n")
 
         try:
-            timeout = 0
+            self.timeout = 0
             while True:
                 
-                if timeout >= 50:
+                if self.timeout >= 50:
                     print(f"[INFO] No change in last 50 checks ({50*self.rwfunc.WAIT_TIME} seconds)")
                     curr_time = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
                     print(f"[INFO] End time: {curr_time}")
@@ -346,12 +358,12 @@ class measUI():
 
                         curr_time = datetime.now().strftime("%H:%M:%S")
                         self.txt_console.insert(tk.INSERT, f"[INFO] {curr_time}: Line {self.rwfunc.line_num} written. Temp: {temps}\n")
-                        timeout = 0
+                        self.timeout = 0
 
                     # If there is no new line wait a bit and start the timeout timer
                     elif self.rwfunc.check_newline() == False:
                         time.sleep(self.rwfunc.WAIT_TIME)
-                        timeout += 1
+                        self.timeout += 1
                 except:
                     # Idealy the error is a one time thing
                     print("[ERROR] Error occured turing main loop. Retrying...")
@@ -366,13 +378,9 @@ class measUI():
         
     def update_time(self):
         # Update time function call only once at beginning
-        self.time_thread = threading.Thread(target = self.update_time, daemon = True)
-        self.time_thread.start()
-
-    def update_time_thread(self):
-        # Update time label every 0.1s
-        self.lbl_clock.config(text = datetime.now().strftime("%H:%M:%S %d/%m/%Y"))
-        time.sleep(0.1)
+        time_string = str(datetime.now().strftime("%H:%M:%S %d/%m/%Y"))
+        self.lbl_clock.config(text = time_string)
+        self.root.after(150, self.update_time)
     
     def get_in_dir_path(self):
         self.subwin.destroy()

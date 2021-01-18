@@ -113,6 +113,11 @@ class KeyDAQ():
         ax.grid()
         plt.show()
 
+    def setup_inst(self):
+        # Function that sets up the instrument to correct parameters
+        # if necessary
+        self.inst.query()
+
 if __name__ == "__main__":
     try:
         inst = KeyDAQ(meas_num=17, graph=True)

@@ -1,8 +1,8 @@
-import tkinter as tk
-from tkinter import filedialog
 import os
 import time
 import threading
+import tkinter as tk
+from tkinter import filedialog
 from datetime import datetime
 
 # Custom libraries
@@ -11,6 +11,7 @@ from rwlib import fileFunc
 
 
 def do_nothing():
+    # Placeholder for buttons
     print("Something")
 
 class measUI():
@@ -20,10 +21,15 @@ class measUI():
 
     def __init__(self, SIM=False):
 
+        # Simulation not implemented
+        # Best solution to replace instrument calls with
+        # random number generator manually
         self.SIM = SIM
 
+        # Widget padding
         self.padx = 6
         self.pady = int(self.padx/2)
+        # Color definitions
         self.color_bg = "#212121"
         self.color_bg_s = "#1F2933"
         self.color_lbl = "#323F4B"
@@ -31,6 +37,7 @@ class measUI():
         self.color_text = "#F5F7FA"
         self.color_btn = "#627D98"
 
+        # Font definitions
         self.font_L = ('Leelawadee UI', 16)
         self.font_M = ('Leelawadee UI', 14)
         self.font_I = ('Consolas', 12)
@@ -40,14 +47,13 @@ class measUI():
         # Read config file and set parameters
         self.rwfunc.read_config()
 
-        # Define widgets
-        self.initUI()
+        self.create_mainwindow()
         # Start clock update
         self.update_time()
         # Start main UI loop
         self.root.mainloop()
 
-    def initUI(self):
+    def create_mainwindow(self):
         # Define UI basics
         self.root = tk.Tk()
         self.root.title("Merjenje temperature")
@@ -266,24 +272,33 @@ class measUI():
     def abort(self):
         print("[INFO] Closing")
         try:
+            # Try to correctly close files and session
             self.rwfunc.close_files()
             self.KeyDAQ.close_session()
         except:
+            # Only negative in fail:
+            # instrument can be falsely detected as connected
+            # next time (no response or connection, just display)
             print("[WARN] Error during shutdown.")
             pass
+        # Exits the script
         exit()
 
     def start_program(self):
+        # Remove the configure button
         self.btn_setup.grid_remove()
+        # Pass the arguments to instrument
         self.KeyDAQ = KeyDAQ(meas_num = self.rwfunc.MEAS_NUM,
                              wait_time = self.rwfunc.WAIT_TIME,
                              channels_start = self.rwfunc.CHANNELS_START,
                              channels_end = self.rwfunc.CHANNELS_END)
         self.KeyDAQ.init_inst()
-        self.main_loopTHREAD = threading.Thread(target=self.main_loop, daemon=True)
-        
+
         curr_time = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
         self.txt_console.insert(tk.INSERT, f"[INFO] {curr_time}: Started program.\n")
+        
+        # Define thread and start
+        self.main_loopTHREAD = threading.Thread(target = self.main_loop, daemon = True)
         self.main_loopTHREAD.start()
 
     def main_loop(self):
@@ -303,7 +318,6 @@ class measUI():
         self.rwfunc.write_heading()
         self.txt_console.insert(tk.INSERT, f"[INFO] Heading written.\n")
 
-       
         try:
             timeout = 0
             while True:
@@ -315,15 +329,16 @@ class measUI():
                     self.rwfunc.close_files()
                     self.txt_console.insert(tk.INSERT, f"[INFO] No change in last 50 checks ({50*self.rwfunc.WAIT_TIME} seconds).\n")
                     self.txt_console.insert(tk.INSERT, f"[INFO] End time: {curr_time}\n")
-
                     break
                 
                 try:
                     self.rwfunc.read_lastline()
 
+                    # Check if UI console is longer than specified
                     if int(float(self.txt_console.index("end"))) >= 30:
                         self.txt_console.delete(1.0, tk.END)
 
+                    # If there is a new line execute measurement
                     if self.rwfunc.check_newline() == True:                        
                         self.KeyDAQ.acquire()
                         temps = self.KeyDAQ.process()
@@ -333,13 +348,14 @@ class measUI():
                         self.txt_console.insert(tk.INSERT, f"[INFO] {curr_time}: Line {self.rwfunc.line_num} written. Temp: {temps}\n")
                         timeout = 0
 
+                    # If there is no new line wait a bit and start the timeout timer
                     elif self.rwfunc.check_newline() == False:
                         time.sleep(self.rwfunc.WAIT_TIME)
                         timeout += 1
                 except:
+                    # Idealy the error is a one time thing
                     print("[ERROR] Error occured turing main loop. Retrying...")
                     self.txt_console.insert(tk.INSERT, f"[ERROR] Error occured turing main loop. Retrying...\n")
-
                     time.sleep(1)
 
         except KeyboardInterrupt:
@@ -347,13 +363,16 @@ class measUI():
             pass
 
         #print(time.time()-start)
-        #self.root.after(1000, self.main_loop)
-
+        
     def update_time(self):
-        #start = time.time()
+        # Update time function call only once at beginning
+        self.time_thread = threading.Thread(target = self.update_time, daemon = True)
+        self.time_thread.start()
+
+    def update_time_thread(self):
+        # Update time label every 0.1s
         self.lbl_clock.config(text = datetime.now().strftime("%H:%M:%S %d/%m/%Y"))
-        self.root.after(500, self.update_time)
-        #print(f"Time taken: {(time.time()-start)*1000}")
+        time.sleep(0.1)
     
     def get_in_dir_path(self):
         self.subwin.destroy()
@@ -386,11 +405,13 @@ class measUI():
         self.create_subwindow()
 
     def check_instrument(self):
+        # Check instrument connection
         print("[INFO] Checking inst connection")
         checkInstT = threading.Thread(target=self.check_inst_thread, daemon=True)
         checkInstT.start()
 
     def check_inst_thread(self):
+        # Checks response to *IDN?
         self.KeyDAQ = KeyDAQ()
         self.KeyDAQ.init_inst()
         response = self.KeyDAQ.check_response()

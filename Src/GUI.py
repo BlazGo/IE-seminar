@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import threading
 import tkinter as tk
@@ -282,7 +283,7 @@ class measUI():
             print("[WARN] Error during shutdown.")
             pass
         # Exits the script
-        exit()
+        sys.exit()
 
     def start_program(self):
         # Remove the configure button

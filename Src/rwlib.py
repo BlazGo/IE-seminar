@@ -132,6 +132,7 @@ class fileFunc:
             return True
         else:
             return False
+            
     def check_d_exists(self, dirpath):
        # Checks if the defined output file already exists
        # Output:

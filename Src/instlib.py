@@ -31,8 +31,8 @@ class KeyDAQ():
         #self.inst.query_delay = 0.0 # Doesnt do much lowest it can go ~140ms for 10 channels 0.0 default
         time.sleep(0.5)
 
-    def init_inst(self):
-        self.inst = self.rm.open_resource("USB0::0x2A8D::0x5001::MY58004219::0::INSTR",
+    def init_inst(self, resource="USB0::0x2A8D::0x5001::MY58004219::0::INSTR"):
+        self.inst = self.rm.open_resource(resource,
                                            read_termination = "\n", 
                                            write_termination = "\n")
         self.inst.timeout = 4000
@@ -54,13 +54,15 @@ class KeyDAQ():
         resolution = "0.01"
         channels = f"{self.CHANNELS_START}:{self.CHANNELS_END}"
         command = f"MEASure:TEMPerature:TCouple? {Tcouple},{resolution},(@{channels})"
-        
+               
         self.temp_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
         meas_iteration = 1
         while meas_iteration <= self.MEAS_NUM:
             print(f"Current iteration: {meas_iteration}")
             start = time.time()
+
             temp_raw = self.inst.query_ascii_values(command)
+            
             print(f"Instrument time: {round((time.time()-start)*1000,3)} [ms]")
 
             for i in range(0, len(temp_raw)):
@@ -70,11 +72,9 @@ class KeyDAQ():
 
     def process(self):
         temp_array_raw = np.asarray(self.temp_array)
-        shape = np.shape(temp_array_raw)
         medians = np.median(temp_array_raw, axis = 0)
         print(medians)
-
-        print(f"Shape: {shape}, Medians: {np.shape(medians)}")
+        print(f"Shape: {np.shape(temp_array_raw)}, Medians: {np.shape(medians)}")
 
         temp_whole = []
         for channel in range(0, self.CHANNELS_NUM):
@@ -88,6 +88,7 @@ class KeyDAQ():
                 if (abs(diff) <= 0.2):
                     temp_temp.append(measurement)
             temp_whole.append(temp_temp)
+
         processed_temp = []
         for channel in temp_whole:
             processed_temp.append(np.mean(np.asarray(channel)))
@@ -107,16 +108,25 @@ class KeyDAQ():
         #plt.show()
 
         #print(self.channel_temps)
-
-        fig, ax = plt.subplots()
-        ax.plot(range(0, self.CHANNELS_NUM), self.channel_temps)
-        ax.grid()
-        plt.show()
+        if self.GRAPH == True:
+            fig, ax = plt.subplots()
+            ax.plot(range(0, self.CHANNELS_NUM), self.channel_temps)
+            ax.grid()
+            plt.show()
 
     def setup_inst(self):
-        # Function that sets up the instrument to correct parameters
-        # if necessary
-        self.inst.query()
+        """
+        Function that sets up the instrument to correct parameters
+        if necessary. For temperature measurements the instrument selects range internally
+        you cannot select which range is used.
+
+        For Tcouple meas. the inst. selects 100mV range.
+        Tcouple meas. require a reference junction temp. see:
+        SENSe TEMPerature:TRANsducer:TCouple:RJUNction:TYPE command
+        By default a fixed ref.junction temp of 0°C is used
+        """
+        # CONFigure and MEASure command automatically selsects °C
+        self.inst.query(f"UNIT:TEMP C,(@{self.CHANNELS_START}:{self.CHANNELS_END})")
 
 if __name__ == "__main__":
     try:
@@ -134,7 +144,6 @@ if __name__ == "__main__":
         print(f"Calc time: {round((time.time()-calc_time)*1000,3)} [ms]")
         
         inst.close_session()
-        inst.graph()
 
     except KeyboardInterrupt as e:
         print(f"Keyboard interrupt {e}")

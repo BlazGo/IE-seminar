@@ -366,13 +366,18 @@ class measUI():
         
     def update_time(self):
         # Update time function call only once at beginning
-        self.time_thread = threading.Thread(target = self.update_time, daemon = True)
+        self.time_thread = threading.Thread(target = self.update_time_thread, daemon = True)
         self.time_thread.start()
 
     def update_time_thread(self):
         # Update time label every 0.1s
-        self.lbl_clock.config(text = datetime.now().strftime("%H:%M:%S %d/%m/%Y"))
-        time.sleep(0.1)
+        try: 
+            while True:
+                clock = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
+                self.lbl_clock.config(text = clock)
+                time.sleep(0.1)
+        except Exception as e:
+            print(f"[WARN] Error with clock.\n{e}")
     
     def get_in_dir_path(self):
         self.subwin.destroy()

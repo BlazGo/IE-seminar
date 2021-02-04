@@ -11,6 +11,7 @@ Output:
 filename = "config.ini" # Output filename
 
 config = ConfigParser()
+# Default (could be removed)
 config["DEFAULT"] = {"Input_dir_path"   : "C:/measurements",
                      "Input_filename"   : "input.txt",
                      "Output_dir_path"  : "C:/measurements/modify",

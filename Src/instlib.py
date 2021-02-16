@@ -10,14 +10,17 @@ Known errors:
     pyvisa-info (usefull command)
     try to use ivi backend
     - Keysight DAQ970 driver same bitness as OS
-    - working with python 64-bit (was the problem with 32-bit python?)
-    TODO:
-    - SETUP correct way 
+    - working with python 64-bit (the problem 32-bit python only?)
 """
 
 class KeyDAQ():
     
     def __init__(self, meas_num=11, wait_time=1, channels_start=101, channels_end=105, graph=False):
+        """ Initializes instrument resources
+
+        Init method to initialize pyvisa resource manager and set measurement
+        parameters. (TODO: Graph, show measurements in real time)
+        """
         self.rm = pyvisa.ResourceManager()
         print(f"[INFO] Found resources: {self.rm.list_resources()}")
 
@@ -28,10 +31,23 @@ class KeyDAQ():
         self.CHANNELS_NUM = channels_end - channels_start +1
         self.GRAPH = graph
 
-        #self.inst.query_delay = 0.0 # Doesnt do much lowest it can go ~140ms for 10 channels 0.0 default
+        # self.inst.query_delay = 0.0 # Doesnt do much 0.0 default
+        # lowest it can go ~140ms for 10 channels
         time.sleep(0.5)
 
-    def init_inst(self, resource="USB0::0x2A8D::0x5001::MY58004219::0::INSTR"):
+    def init_inst(self):
+        """ Initializes the session with the instrument
+        
+        Initializes the session, select the first found
+        resource.
+        TODO: selection what instrument to use or always
+        find the default one (Keysight DAQ970A)
+        """
+        try:
+            resource = self.rm.list_resources()
+        else:
+            resource = "USB0::0x2A8D::0x5001::MY58004219::0::INSTR"
+
         self.inst = self.rm.open_resource(resource,
                                            read_termination = "\n", 
                                            write_termination = "\n")
@@ -39,17 +55,35 @@ class KeyDAQ():
         print("[INFO] Instrument initialized")
 
     def check_response(self):
+        """ Returns instument response 
+        
+        Sends command to send the instrument indetification
+        (usually name, brand, etc)
+        """
         response = self.inst.query("*IDN?")
         print(f"[INFO] Instrument response to *IDN?: {response}")
         return response
 
     def scan_channels(self):
+        """ Scans channel and returns/selects connected ones
+        
+        TODO: Automatic detection
+        """
         # if nothing is connected value -9.9e+37
+        # Start and end channels should consider all possible channels
         self.channel_start = 101
         self.channel_end = 111
         self.channel_num = self.channel_end - self.channel_start
 
     def acquire(self):
+        """ Function to return measurement
+
+        Can define the channels and number of measurements.
+        Returns array 
+        rows->channels 
+        column->measurements
+        """
+
         Tcouple = "J"
         resolution = "0.01"
         channels = f"{self.CHANNELS_START}:{self.CHANNELS_END}"
@@ -69,11 +103,19 @@ class KeyDAQ():
                 self.temp_array[meas_iteration-1,i] = temp_raw[i]
 
             meas_iteration += 1
+        
+        return self.temp_array
 
     def process(self):
+        """ Measurement process
+
+        Simple statistical process of data.
+        Reads the median, removes outliers and returns 
+        avg. of each channel.
+        Returns processed temperatures [list 1xCHANNEL_NUM].
+        """
         temp_array_raw = np.asarray(self.temp_array)
         medians = np.median(temp_array_raw, axis = 0)
-        print(medians)
         print(f"Shape: {np.shape(temp_array_raw)}, Medians: {np.shape(medians)}")
 
         temp_whole = []
@@ -97,6 +139,12 @@ class KeyDAQ():
         return self.channel_temps
 
     def close_session(self):
+        """ Closes instrument session
+
+        The correct way to disconnect/close instrument. If it is not
+        executed properly the instrument "stays" in the memmory and
+        in the next program run it can detect it even when not connected.
+        """
         self.rm.close()
         try:
             print(f"[INFO] Found resources: {self.rm.list_resources()}")
@@ -104,6 +152,9 @@ class KeyDAQ():
             print(f"[INFO] Session closed")
 
     def graph(self):
+        """ Graph data in real time
+        TODO
+        """
         #plt.plot(self.temp_array)
         #plt.show()
 
@@ -115,7 +166,8 @@ class KeyDAQ():
             plt.show()
 
     def setup_inst(self):
-        """
+        """ Inst. measurement parameters setup.
+        TODO
         Function that sets up the instrument to correct parameters
         if necessary. For temperature measurements the instrument selects range internally
         you cannot select which range is used.
@@ -129,6 +181,9 @@ class KeyDAQ():
         self.inst.query(f"UNIT:TEMP C,(@{self.CHANNELS_START}:{self.CHANNELS_END})")
 
 if __name__ == "__main__":
+    """ Test run
+    Should print the measurements if everything works. 
+    """
     try:
         inst = KeyDAQ(meas_num=17, graph=True)
 

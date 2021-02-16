@@ -15,6 +15,11 @@ def do_nothing():
     # Placeholder for buttons
     print("Something")
 
+def curr_time():
+    # Returns current time in string format
+    return datetime.now().strftime("%H:%M:%S %d/%m/%Y")
+
+
 class measUI():
     """
     Class with UI definition 
@@ -55,6 +60,8 @@ class measUI():
         self.root.mainloop()
 
     def create_mainwindow(self):
+        """ Function that handles main window geometry
+        """
         # Define UI basics
         self.root = tk.Tk()
         self.root.title("Merjenje temperature")
@@ -142,7 +149,8 @@ class measUI():
         self.txt_console.grid(row = 1, column = 2, rowspan = 11, sticky = "w", padx = self.padx, pady = self.pady)
 
     def create_subwindow(self):
-        """ Function to create config subwindow """
+        """ Function that handles configuration subwindow
+        """
         # Define window basic parameters
         self.subwin = tk.Toplevel(bg = self.color_bg)
         self.subwin.title("Nastavitve")
@@ -241,7 +249,11 @@ class measUI():
         btn_cout_dir.grid(row = 3, column = 3, sticky = "ew", padx = self.padx, pady = self.pady)
 
     def save_and_return(self):
-        """ Saves all the variables back into the appropriate class """
+        """ Button function to save
+
+        Saves all configured parameters and saves them into the rwfunc class
+        and the base window labels
+        """
         self.rwfunc.INPUT_DIR_PATH = self.ent_in_dir.get()
         self.rwfunc.INPUT_FILENAME = self.ent_in_name.get()
         self.rwfunc.INPUT_FILE_PATH = os.path.join(self.rwfunc.INPUT_DIR_PATH, self.rwfunc.INPUT_FILENAME)
@@ -271,11 +283,15 @@ class measUI():
         self.txt_console.insert(tk.INSERT, f"[INFO] New parameters saved.\n")
 
     def abort(self):
+        """ Closes the program
+
+        Also tries to close the files and instrument session
+        """
         print("[INFO] Closing")
         try:
             # Try to correctly close files and session
             self.rwfunc.close_files()
-            self.KeyDAQ.close_session()
+            self.KeyDAQ.close_session()   
         except:
             # Only negative in fail:
             # instrument can be falsely detected as connected
@@ -283,28 +299,39 @@ class measUI():
             print("[WARN] Error during shutdown.")
             pass
         # Exits the script
+        print("[INFO] Done.")
         sys.exit()
 
     def start_program(self):
+        """ Button function START
+
+        Starting procedure of the program
+        """
         # Remove the configure button
         self.btn_setup.grid_remove()
-        # Pass the arguments to instrument
+
+        self.txt_console.insert(tk.INSERT, f"[INFO] {curr_time()}: Started program.\n")
+
+        # Pass the arguments to instrument class
         self.KeyDAQ = KeyDAQ(meas_num = self.rwfunc.MEAS_NUM,
                              wait_time = self.rwfunc.WAIT_TIME,
                              channels_start = self.rwfunc.CHANNELS_START,
                              channels_end = self.rwfunc.CHANNELS_END)
         self.KeyDAQ.init_inst()
-
-        curr_time = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
-        self.txt_console.insert(tk.INSERT, f"[INFO] {curr_time}: Started program.\n")
+        self.txt_console.insert(tk.INSERT, f"[INFO] Instrument initialized.\n")
         
         # Define thread and start
         self.main_loopTHREAD = threading.Thread(target = self.main_loop, daemon = True)
         self.main_loopTHREAD.start()
 
     def main_loop(self):
-        start = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
-        print(f"[INFO] Start time: {start}")
+        """ Main loop 
+
+        Wait for the original file to be created and then create new file.
+        Copy heading and enter main loop.
+        Main loop checks for new line, executes measurements and writes to new file.
+        """
+        print(f"[INFO] Start time: {curr_time()}")
 
         if self.rwfunc.check_f_exists(self.rwfunc.OUTPUT_FILE_PATH) == True:
             # If file exists stop execution
@@ -320,15 +347,15 @@ class measUI():
         self.txt_console.insert(tk.INSERT, f"[INFO] Heading written.\n")
 
         try:
+            TIMEOUT_MAX = 150
             timeout = 0
             while True:
                 
-                if timeout >= 50:
-                    print(f"[INFO] No change in last 50 checks ({50*self.rwfunc.WAIT_TIME} seconds)")
-                    curr_time = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
-                    print(f"[INFO] End time: {curr_time}")
+                if timeout >= TIMEOUT_MAX:
+                    print(f"[INFO] No change in last {TIMEOUT_MAX} checks ({TIMEOUT_MAX*self.rwfunc.WAIT_TIME} seconds)")
+                    print(f"[INFO] End time: {curr_time()}")
                     self.rwfunc.close_files()
-                    self.txt_console.insert(tk.INSERT, f"[INFO] No change in last 50 checks ({50*self.rwfunc.WAIT_TIME} seconds).\n")
+                    self.txt_console.insert(tk.INSERT, f"[INFO] No change in last {TIMEOUT_MAX} checks ({TIMEOUT_MAX*self.rwfunc.WAIT_TIME} seconds).\n")
                     self.txt_console.insert(tk.INSERT, f"[INFO] End time: {curr_time}\n")
                     break
                 
@@ -341,12 +368,11 @@ class measUI():
 
                     # If there is a new line execute measurement
                     if self.rwfunc.check_newline() == True:                        
-                        self.KeyDAQ.acquire()
-                        temps = self.KeyDAQ.process()
-                        self.rwfunc.write_line(temps)
+                        self.KeyDAQ.acquire() # measurement
+                        temps = self.KeyDAQ.process() # process temps.
+                        self.rwfunc.write_line(temps) # write line
 
-                        curr_time = datetime.now().strftime("%H:%M:%S")
-                        self.txt_console.insert(tk.INSERT, f"[INFO] {curr_time}: Line {self.rwfunc.line_num} written. Temp: {temps}\n")
+                        self.txt_console.insert(tk.INSERT, f"[INFO] {curr_time()}: Line {self.rwfunc.line_num} written. Temp: {temps}\n")
                         timeout = 0
 
                     # If there is no new line wait a bit and start the timeout timer
@@ -374,8 +400,7 @@ class measUI():
         # Update time label every 0.1s
         try: 
             while True:
-                clock = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
-                self.lbl_clock.config(text = clock)
+                self.lbl_clock.config(text = curr_time())
                 time.sleep(0.1)
         except Exception as e:
             print(f"[WARN] Error with clock.\n{e}")

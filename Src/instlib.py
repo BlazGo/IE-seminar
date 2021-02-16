@@ -44,9 +44,10 @@ class KeyDAQ():
         find the default one (Keysight DAQ970A)
         """
         try:
-            resource = self.rm.list_resources()
-        else:
+            resource = self.rm.list_resources()[0]
+        except:
             resource = "USB0::0x2A8D::0x5001::MY58004219::0::INSTR"
+            print(f"[INFO] Setting default Instrument address. Check response.")
 
         self.inst = self.rm.open_resource(resource,
                                            read_termination = "\n", 

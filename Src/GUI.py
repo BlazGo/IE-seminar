@@ -390,7 +390,7 @@ class measUI():
                     # If there is no new line wait a bit and start the timeout timer
                     elif self.rwfunc.check_newline() == False:
                         time.sleep(self.rwfunc.WAIT_TIME)
-                        self.timeout += 1
+                        timeout += 1
                 except:
                     # Idealy the error is a one time thing
                     print("[ERROR] Error occured turing main loop. Retrying...")

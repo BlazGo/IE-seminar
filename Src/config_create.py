@@ -11,11 +11,14 @@ Output:
 filename = "config.ini" # Output filename
 
 config = ConfigParser()
+# Default (could be removed)
 config["DEFAULT"] = {"Input_dir_path"   : "C:/measurements",
                      "Input_filename"   : "input.txt",
                      "Output_dir_path"  : "C:/measurements/modify",
                      "Output_filename"  : "output.txt",
                      "Instrument"       : "Keysight DAQ970A",
+                     "Instrument_address": "USB0::0x2A8D::0x5001::MY58004219::0::INSTR",
+                     "Thermocouple_type" : "J",
                      "Meas_num"         : "11",
                      "Wait_time"        : "1",
                      "Channels_start"   : "101",
@@ -29,6 +32,8 @@ config["FILE_SETUP"] = {"Input_dir_path" : "C:/Users/dd/Desktop/Fe/SRM/IE-semina
                         }
 
 config["INSTRUMENT_SETUP"] = {  "Instrument"        : "Keysight DAQ970A",
+                                "Instrument_address": "USB0::0x2A8D::0x5001::MY58004219::0::INSTR",
+                                "Thermocouple_type" : "J",
                                 "Meas_num"          : "9",
                                 "Wait_time"         : "2.5",
                                 "Channels_start"    : "101",

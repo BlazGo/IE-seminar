@@ -11,24 +11,24 @@ Output:
 filename = "config.ini" # Output filename
 
 config = ConfigParser()
-# Default (could be removed)
-config["DEFAULT"] = {"Input_dir_path"   : "C:/measurements",
-                     "Input_filename"   : "input.txt",
-                     "Output_dir_path"  : "C:/measurements/modify",
-                     "Output_filename"  : "output.txt",
-                     "Instrument"       : "Keysight DAQ970A",
-                     "Instrument_address": "USB0::0x2A8D::0x5001::MY58004219::0::INSTR",
-                     "Thermocouple_type" : "J",
-                     "Meas_num"         : "11",
-                     "Wait_time"        : "1",
-                     "Channels_start"   : "101",
-                     "Channels_end"     : "105"
+# Default
+config["DEFAULT"] = {"Input_dir_path"       : "C:/measurements",
+                     "Input_filename"       : "input.txt",
+                     "Output_dir_path"      : "C:/measurements/modify",
+                     "Output_filename"      : "output.txt",
+                     "Instrument"           : "Keysight DAQ970A",
+                     "Instrument_address"   : "USB0::0x2A8D::0x5001::MY58004219::0::INSTR",
+                     "Thermocouple_type"    : "J",
+                     "Meas_num"             : "11",
+                     "Wait_time"            : "1",
+                     "Channels_start"       : "101",
+                     "Channels_end"         : "105"
                      }
 
-config["FILE_SETUP"] = {"Input_dir_path" : "C:/Users/dd/Desktop/Fe/SRM/IE-seminar/",
-                        "Input_filename" : "input_file.txt",
-                        "Output_dir_path": "C:/Users/dd/Desktop/Fe/SRM/IE-seminar/",
-                        "Output_filename": "output_file.txt"
+config["FILE_SETUP"] = {"Input_dir_path"    : "C:/Users/dd/Desktop/Fe/SRM/IE-seminar/",
+                        "Input_filename"    : "input_file.txt",
+                        "Output_dir_path"   : "C:/Users/dd/Desktop/Fe/SRM/IE-seminar/",
+                        "Output_filename"   : "output_file.txt"
                         }
 
 config["INSTRUMENT_SETUP"] = {  "Instrument"        : "Keysight DAQ970A",

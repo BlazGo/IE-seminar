@@ -3,18 +3,18 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-"""
-Known errors:
-    - watch out for initialization. Everything can hang with no errors
-    if the bitness of the libraries is incompatible
-    pyvisa-info (usefull command)
-    try to use ivi backend
-    - Keysight DAQ970 driver same bitness as OS
-    - working with python 64-bit (the problem 32-bit python only?)
-"""
+
 
 class KeyDAQ():
-    
+    """
+    Known errors:
+        - watch out for initialization. Everything can hang with no errors
+        if the bitness of the libraries is incompatible
+        pyvisa-info (usefull command)
+        try to use ivi backend
+        - Keysight DAQ970 driver same bitness as OS
+        - working with python 64-bit (the problem 32-bit python only?)
+    """
     def __init__(self, meas_num=11, wait_time=1, channels_start=101, channels_end=105, graph=False):
         """ Initializes instrument resources
 
@@ -76,7 +76,7 @@ class KeyDAQ():
         self.channel_end = 111
         self.channel_num = self.channel_end - self.channel_start
 
-    def acquire(self):
+    def acquire_measurements(self):
         """ Function to return measurement
 
         Can define the channels and number of measurements.
@@ -107,27 +107,34 @@ class KeyDAQ():
         
         return self.temp_array
 
-    def process(self):
+    def process_measurements(self):
         """ Measurement process
+        Simple statistical process of data. Reads the median,
+        removes outliers and returns avg. of each channel. 
 
-        Simple statistical process of data.
-        Reads the median, removes outliers and returns 
-        avg. of each channel.
-        Returns processed temperatures [list 1xCHANNEL_NUM].
+        Parameters:
+        ----------
+        measurements : list of lists
+            Embedded lists 1xCHANNEL_NUM measurements. Len of 
+            parent list is based on MEAS_NUM.
+
+        Returns:
+        ----------
+        channel_temps : list of numbers
+            processed temperatures [list 1xCHANNEL_NUM]
+        
         """
         temp_array_raw = np.asarray(self.temp_array)
         medians = np.median(temp_array_raw, axis = 0)
-        print(f"Shape: {np.shape(temp_array_raw)}, Medians: {np.shape(medians)}")
+        # print(f"Shape: {np.shape(temp_array_raw)}, Medians: {np.shape(medians)}")
 
         temp_whole = []
         for channel in range(0, self.CHANNELS_NUM):
             # Check each channel column
             temp_temp = []
-            
             for measurement in temp_array_raw[:,channel]:
                 # Check each measurement row
                 diff = measurement - medians[channel]
-
                 if (abs(diff) <= 0.2):
                     temp_temp.append(measurement)
             temp_whole.append(temp_temp)
@@ -139,18 +146,23 @@ class KeyDAQ():
         self.channel_temps = processed_temp
         return self.channel_temps
 
+    def get_measurements(self):
+        self.acquire_measurements()
+        self.process_measurements()
+
     def close_session(self):
         """ Closes instrument session
-
         The correct way to disconnect/close instrument. If it is not
         executed properly the instrument "stays" in the memmory and
         in the next program run it can detect it even when not connected.
+
         """
-        self.rm.close()
+       
         try:
-            print(f"[INFO] Found resources: {self.rm.list_resources()}")
-        except pyvisa.errors.InvalidSession: # error when thereis invalid session
+            self.inst.close()
             print(f"[INFO] Session closed")
+        except pyvisa.errors.InvalidSession:
+            print(f"[WARN] Invalid session. The resource might be closed.")
 
     def graph(self):
         """ Graph data in real time
@@ -184,7 +196,9 @@ class KeyDAQ():
 if __name__ == "__main__":
     """ Test run
     Should print the measurements if everything works. 
+
     """
+    
     try:
         inst = KeyDAQ(meas_num=17, graph=True)
 
@@ -192,11 +206,11 @@ if __name__ == "__main__":
         inst.scan_channels()
 
         meas_time = time.time()
-        inst.acquire()
+        inst.acquire_measurements()
         print(f"Meas time: {round((time.time()-meas_time)*1000,3)} [ms]")
 
         calc_time = time.time()
-        inst.process()
+        inst.process_measurements()
         print(f"Calc time: {round((time.time()-calc_time)*1000,3)} [ms]")
         
         inst.close_session()

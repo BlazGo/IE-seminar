@@ -23,7 +23,8 @@ class fileFunc:
     """
 
     def __init__(self):
-        """ Initialize all variables """
+        """ Initialize all variables
+        """
 
         # All variables used in wider scope are defined here first
         # and are changed later in the operation
@@ -49,14 +50,18 @@ class fileFunc:
         # Other variables
         self.input_file = None
         self.output_file = None
-        self.new_line = None
-        self.old_line = None
+        self.last_line = "None"
         self.line_num = 1
 
-    def read_config(self, name="config.ini"):
-        """ Reads the configuration file and saves variables
-            Input:
-                - configuration filename (optional default already set)
+    def read_config(self, config_filename="config.ini"):
+        """ Reads the configuration file and saves parameters as
+        class variables. Config file to be in the same directory
+        as the running scripts.
+
+        Parameters:
+        ----------
+        config_filename : configuration filename (optional default already set)
+
         """
 
         print("[INFO] Reading config file")
@@ -66,7 +71,7 @@ class fileFunc:
                                                            '/')).split('/')[:-1])
 
         config = configparser.ConfigParser()
-        config.read(os.path.join(path, name))
+        config.read(os.path.join(path, config_filename))
 
         # Define the keys of config file
         file_setup = config["FILE_SETUP"]
@@ -92,76 +97,71 @@ class fileFunc:
 
         self.CHANNEL_NUM = self.CHANNELS_END - self.CHANNELS_START
 
-    def wait_file(self, filepath, filename):
-        """ Will stay in loop until the file to read is created. """
+    def wait_file(self, filepath, filename=""):
+        """ Waits for specified file to be created.
 
-        i = 0
+        Parameters:
+        ----------
+        filepath : string (path)
+            File path.
+        filename : string (name)
+            File name.
+
+        """
+
+        print(f"[INFO] Waiting for file: {filename} to be created.")
         # Check if file exists
         while not os.path.exists(filepath):
-            time.sleep(1)
+            time.sleep(0.5)
 
-            if i == 0:
-                print("[INFO] Waiting for file to read")
-            if i >= 6:
-                print("[INFO] File not yet found.")
-                i = 0
-            i += 1
-        print(f"[INFO] File: {filename} found")
+        print(f"[INFO] File: {filename} found.")
 
     def create_file(self, ifilepath, ifilename, ofilepath, ofilename):
         """ Create the file to write
-        First waits for read file to be created, then opens it
-        and creates the file to write to.
+        First waits for read file to be created then creates the
+        output file and opens the original file.
+
+        Parameters:
+        ----------
+        ifilepath : string (path)
+            Input file path.
+        ifilename : string (name)
+            Input file name.
+        ofilepath : string (path)
+            Output file path.
+        ofilename : string (name)
+            Output file name.
+
         """
+        
         # Waiting for the input file to be created
         self.wait_file(ifilepath, ifilename)
 
-        # If it is a file -> open
-        if os.path.isfile(ifilepath):
-            self.input_file = open(ifilepath, 'r')
-        else:
-            raise ValueError(f"[ERROR] {ifilepath} isn't a file!")
-
         self.output_file = open(ofilepath, 'x')
+        self.input_file = open(ifilepath, 'r')
         print(f"[INFO] File: {ofilename} created.")
+ 
+    def write_heading(self, heading_lines=8):
+        """ Writes the heading. Copies the first N lines,
+        adds additional parameters as the first line, adds
+        another tab/column at the last line and writes
+        everything into the new file 
 
-    def check_f_exists(self, filepath):
-       # Checks if the defined output file already exists
-       # Output:
-       #    - bool (True, False)
-
-        if os.path.exists(filepath):
-            print("[WARN] File to create with this name already exists!")
-            print(f"       {filepath}")
-            return True
-        else:
-            return False
-
-    def check_d_exists(self, dirpath):
-       # Checks if the defined output file already exists
-       # Output:
-       #    - bool (True, False)
-
-        if os.path.exists(dirpath):
-            print("[WARN] File to create with this name already exists!")
-            print(f"       {dirpath}")
-            return True
-        else:
-            return False
-
-    def write_heading(self):
-        # Parse the heading and write to new file
+        Parameters:
+        ----------
+        heading_lines : int
+            Number of lines to copy (our case default=8).
+        
+        """
 
         # Additional info
         start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-        additional_info = (f"Start time: {start_time},\t"
-                           f"Instrument: {self.INSTRUMENT_NAME},\t"
-                           f"Meas num: {self.MEAS_NUM},\t"
-                           f"Wait time: {self.WAIT_TIME}\n")
+        additional_info = (
+            f"Start time: {start_time},\tInstrument: {self.INSTRUMENT_NAME},\tMeas num: {self.MEAS_NUM},\tWait time: {self.WAIT_TIME}\n")
 
         # Read the file
         input_lines = self.input_file.readlines()
-        heading = input_lines[0:8]  # It is defined as first 8 rows
+        heading = input_lines[0:heading_lines]  # It is defined as first 8 rows
         # Remove new line from last line
         heading[-1] = heading[-1].rstrip("\n")
 
@@ -175,47 +175,63 @@ class fileFunc:
         self.output_file.writelines(additional_info)
         self.output_file.writelines(heading)
 
-    def read_lastline(self):
-        # Reads the last line in file
+    def check_newline(self):
+        """ Checks the last line of the file. If a change
+        in the last line is detected it saves the last line.
+
+        Returns:
+        ----------
+        Status : Bool
+            If a change is detected returns True. If there is no
+            change in last line returns False
+        
+        """
+
         line = None  # Referenced before assignment error
+        # reads last line in file
         for line in self.input_file:
             pass
         if line == None:
-            return
-
-        self.new_line = line
-
-    def check_newline(self):
-        if self.new_line == self.old_line:
-            # There is no new line return FALSE
             return False
-        elif self.new_line != self.old_line:
+
+        if line == self.last_line:
+            return False
+        elif line != self.last_line:
             # Save new line as current line to check
-            self.old_line = self.new_line
-            # There is a new line return TRUE
+            self.last_line = line
             return True
 
-    def parse_line(self, og_line, temps=-1):
-        temp_string = ""
+    def write_new_line(self, original_line="", temperatures=-1):
+        """ Writes new line into the output file. Joins old line and
+        formats the temperatures.
 
-        print(len(temps))
-        # For each temp
-        for num in temps:
+        Parameters:
+        ----------
+        original_line : string
+            In our case we input the last line read.
+        temperatures : list
+            List containing numbers (floats).
+        
+        """
+
+        temp_string = ""
+        for num in temperatures:
             temp_string += "\t" + str(round(num, 3))
 
-        # Add the temperatures at the end of the line
-        return og_line.strip("\n") + temp_string + "\n"
+        # Remove newline from old line, add temp and new line
+        string_to_write = original_line.strip("\n") + temp_string + "\n"
 
-    def write_line(self, temp=-1):
-        string_to_write = self.parse_line(self.new_line, temp)
         self.output_file.write(string_to_write)
+        # Flush the buffer so it immediatelly writes the line
         self.output_file.flush()
 
-        time_now = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-        print(f"[INFO] {time_now} Written line {self.line_num}")
+        # Keep track of written lines
         self.line_num += 1
 
     def close_files(self):
+        """ Closes both files the correct way.
+
+        """
         print("[INFO] Closing files")
         self.input_file.close()
         self.output_file.close()
@@ -226,18 +242,15 @@ if __name__ == "__main__":
     fc = fileFunc()
     fc.read_config()
 
-    if fc.check_f_exists(fc.OUTPUT_FILE_PATH) == True:
-        raise ValueError
-
     fc.create_file(fc.INPUT_FILE_PATH, fc.INPUT_FILENAME,
                    fc.OUTPUT_FILE_PATH, fc.OUTPUT_FILENAME)
     fc.write_heading()
 
     try:
         while True:
-            fc.read_lastline()
-            if fc.check_newline() == False:
-                fc.write_line([1, 2])
+            print("[INFO] In main loop...")
+            if fc.check_newline() == True:
+                fc.write_new_line(fc.last_line, [1, 2, 3, 4])
             time.sleep(1)
     except KeyboardInterrupt:
         print("Stopping...")

@@ -3,9 +3,10 @@ import os
 import time
 from datetime import datetime
 
+
 class fileFunc:
     """ Class with functions to read/write to a file 
-    
+
     Functions:
         - __init__ (define all variables on one place)
         - read_config (reads the configuration file (config.ini, 
@@ -57,17 +58,18 @@ class fileFunc:
             Input:
                 - configuration filename (optional default already set)
         """
-        
+
         print("[INFO] Reading config file")
 
         # Get absolute path (should be safe to move)
-        path = '/'.join((os.path.abspath(__file__).replace('\\', '/')).split('/')[:-1])
-        
+        path = '/'.join((os.path.abspath(__file__).replace('\\',
+                                                           '/')).split('/')[:-1])
+
         config = configparser.ConfigParser()
         config.read(os.path.join(path, name))
 
         # Define the keys of config file
-        file_setup = config["FILE_SETUP"]            
+        file_setup = config["FILE_SETUP"]
         instrument_setup = config["INSTRUMENT_SETUP"]
 
         # Retrieve all the (needed) variables
@@ -83,8 +85,10 @@ class fileFunc:
         self.CHANNELS_END = int(instrument_setup.get("Channels_end"))
 
         # For convenience join the dir path and filename
-        self.INPUT_FILE_PATH = os.path.join(self.INPUT_DIR_PATH, self.INPUT_FILENAME)
-        self.OUTPUT_FILE_PATH = os.path.join(self.OUTPUT_DIR_PATH, self.OUTPUT_FILENAME)
+        self.INPUT_FILE_PATH = os.path.join(
+            self.INPUT_DIR_PATH, self.INPUT_FILENAME)
+        self.OUTPUT_FILE_PATH = os.path.join(
+            self.OUTPUT_DIR_PATH, self.OUTPUT_FILENAME)
 
         self.CHANNEL_NUM = self.CHANNELS_END - self.CHANNELS_START
 
@@ -108,7 +112,7 @@ class fileFunc:
         """ Create the file to write
         First waits for read file to be created, then opens it
         and creates the file to write to.
-    	"""
+        """
         # Waiting for the input file to be created
         self.wait_file(ifilepath, ifilename)
 
@@ -117,7 +121,7 @@ class fileFunc:
             self.input_file = open(ifilepath, 'r')
         else:
             raise ValueError(f"[ERROR] {ifilepath} isn't a file!")
-        
+
         self.output_file = open(ofilepath, 'x')
         print(f"[INFO] File: {ofilename} created.")
 
@@ -132,7 +136,7 @@ class fileFunc:
             return True
         else:
             return False
-            
+
     def check_d_exists(self, dirpath):
        # Checks if the defined output file already exists
        # Output:
@@ -157,8 +161,9 @@ class fileFunc:
 
         # Read the file
         input_lines = self.input_file.readlines()
-        heading = input_lines[0:8] # It is defined as first 8 rows
-        heading[-1] = heading[-1].rstrip("\n") # Remove new line from last line
+        heading = input_lines[0:8]  # It is defined as first 8 rows
+        # Remove new line from last line
+        heading[-1] = heading[-1].rstrip("\n")
 
         # For each channel new column
         for c in range(1, self.CHANNEL_NUM+2):
@@ -169,10 +174,10 @@ class fileFunc:
         # Write the heading
         self.output_file.writelines(additional_info)
         self.output_file.writelines(heading)
-                
+
     def read_lastline(self):
         # Reads the last line in file
-        line = None # Referenced before assignment error
+        line = None  # Referenced before assignment error
         for line in self.input_file:
             pass
         if line == None:
@@ -180,7 +185,7 @@ class fileFunc:
 
         self.new_line = line
 
-    def check_newline(self):        
+    def check_newline(self):
         if self.new_line == self.old_line:
             # There is no new line return FALSE
             return False
@@ -192,12 +197,12 @@ class fileFunc:
 
     def parse_line(self, og_line, temps=-1):
         temp_string = ""
-        
+
         print(len(temps))
         # For each temp
         for num in temps:
             temp_string += "\t" + str(round(num, 3))
-        
+
         # Add the temperatures at the end of the line
         return og_line.strip("\n") + temp_string + "\n"
 
@@ -217,16 +222,17 @@ class fileFunc:
 
 
 if __name__ == "__main__":
-    
+
     fc = fileFunc()
     fc.read_config()
 
     if fc.check_f_exists(fc.OUTPUT_FILE_PATH) == True:
         raise ValueError
 
-    fc.create_file(fc.INPUT_FILE_PATH, fc.INPUT_FILENAME, fc.OUTPUT_FILE_PATH, fc.OUTPUT_FILENAME)
+    fc.create_file(fc.INPUT_FILE_PATH, fc.INPUT_FILENAME,
+                   fc.OUTPUT_FILE_PATH, fc.OUTPUT_FILENAME)
     fc.write_heading()
-    
+
     try:
         while True:
             fc.read_lastline()

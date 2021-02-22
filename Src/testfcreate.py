@@ -1,10 +1,10 @@
+from tkinter import filedialog
+import tkinter as tk
+import time
+import os
+from datetime import datetime
 print("Running test_data_creator")
 
-from datetime import datetime
-import os
-import time
-import tkinter as tk
-from tkinter import filedialog
 
 """
 - Opens template file and reads it
@@ -21,19 +21,19 @@ class file_create:
         self.window = tk.Tk()
 
         btn_get_original_filename = tk.Button(
-            text = "Izberi original datoteko",
-            command = self.get_original_filename,
-            )
+            text="Izberi original datoteko",
+            command=self.get_original_filename,
+        )
 
         btn_get_new_file_path = tk.Button(
-            text = "Izberi direktorijo",
-            command = self.get_new_file_path,
-            )
+            text="Izberi direktorijo",
+            command=self.get_new_file_path,
+        )
 
         btn_continue = tk.Button(
-            text = "Nadaljuj",
-            command = self.close_continue,
-            )
+            text="Nadaljuj",
+            command=self.close_continue,
+        )
 
         btn_get_original_filename.pack()
         btn_get_new_file_path.pack()
@@ -56,7 +56,7 @@ class file_create:
         """
         with open(self.original_file_path, "r") as og_file:
             self.original_lines = og_file.readlines()
-        
+
         counter = 0
         filename = self.new_file_path + "/input_file.txt"
         while os.path.isfile(filename.format(counter)):
@@ -75,9 +75,9 @@ class file_create:
     def main_loop(self):
         print("Entered main loop...")
         i = 1
-        for i in range(8,len(self.original_lines)):
-            self.new_file.write(self.original_lines[i]) # write i-th line
-            self.new_file.flush() # refresh file? update
+        for i in range(8, len(self.original_lines)):
+            self.new_file.write(self.original_lines[i])  # write i-th line
+            self.new_file.flush()  # refresh file? update
 
             now = datetime.now()
             curr_time = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -86,9 +86,10 @@ class file_create:
 
         print("[INFO] Done")
 
+
 if __name__ == "__main__":
     try:
-        fc = file_create() 
+        fc = file_create()
         fc.create()
         fc.create_heading()
         fc.main_loop()

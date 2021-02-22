@@ -52,6 +52,8 @@ class file_create:
         self.new_file_path = filedialog.askdirectory()
 
     def create(self):
+        """ Opens original file 
+        """
         with open(self.original_file_path, "r") as og_file:
             self.original_lines = og_file.readlines()
         
@@ -64,6 +66,8 @@ class file_create:
         print("Created heading.")
 
     def create_heading(self):
+        """ Copies file heading (first 8 lines)
+        """
         heading = self.original_lines[0:8]
         self.new_file.writelines(heading)
         self.new_file.flush()

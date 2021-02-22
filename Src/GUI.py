@@ -27,7 +27,7 @@ class measUI():
 
     def __init__(self, SIM=False):
 
-        # Simulation not implemented
+        # Simple simulation not implemented
         # Best solution to replace instrument calls with
         # random number generator manually
         self.SIM = SIM

@@ -37,7 +37,7 @@ class measUI():
     """
 
     # Time to timeout 
-    TIMEOUT_MAX = 500  # [s]
+    TIMEOUT_MAX = 1200  # [s]
     
     # Widget padding
     padx = 6
@@ -57,7 +57,9 @@ class measUI():
     font_I = ('Consolas', 11)
 
     def __init__(self, master, SIM=False):
+        """ Main window
 
+        """
         # Simple simulation not implemented
         # Best solution to replace instrument calls with
         # random number generator manually
@@ -163,7 +165,9 @@ class measUI():
 
     def create_subwindow(self):
         """ Function that handles configuration subwindow
+
         """
+        
         # Define window basic parameters
         self.subwin = tk.Toplevel(self.root, bg=self.color_bg)
         self.subwin.title("Nastavitve")
@@ -262,10 +266,11 @@ class measUI():
 
     def save_and_return(self):
         """ Button function to save
-
         Saves all configured parameters and saves them into the rwfunc class
         and the base window labels
+
         """
+        
         self.rwfunc.INPUT_DIR_PATH = self.ent_in_dir.get()
         self.rwfunc.INPUT_FILENAME = self.ent_in_name.get()
         self.rwfunc.INPUT_FILE_PATH = os.path.join(self.rwfunc.INPUT_DIR_PATH, self.rwfunc.INPUT_FILENAME)
@@ -299,6 +304,7 @@ class measUI():
         Reads the configuration file again and saves parameters.
         
         """
+
         self.rwfunc.read_config()
 
         self.ent_in_dir.delete(0, tk.END)
@@ -320,13 +326,14 @@ class measUI():
         self.spi_ch_start.insert(0, self.rwfunc.CHANNELS_START)
         self.spi_ch_end.insert(0, self.rwfunc.CHANNELS_END)
         self.spi_wtime.insert(0, self.rwfunc.WAIT_TIME)
-        pass
 
     def abort(self):
         """ Closes the program
 
         Also tries to close the files and instrument session
+        
         """
+
         print("[INFO] Closing")
 
         # Try to correctly close files and session
@@ -334,7 +341,6 @@ class measUI():
             self.rwfunc.close_files()
         except AttributeError:
             print("[INFO] No file to close.")
-            pass
 
         try:
             self.KeyDAQ.close_session()
@@ -343,8 +349,7 @@ class measUI():
             # instrument can be falsely detected as connected
             # next time (no response or connection, just display)
             print("[WARN] Error during inst. session close.")
-            pass
-        # Exits the script
+
         print("[INFO] Done.")
         sys.exit()
 
@@ -352,14 +357,14 @@ class measUI():
         """ Button function START
 
         Starting procedure of the program.
-        Initialize instrument, start the main loop thread.
-
+        Initialize instrument, wait for the original file to be created and then create new file.
+        Copy heading and enter main loop.
         """
 
         self.KeyDAQ = KeyDAQ(meas_num=self.rwfunc.MEAS_NUM,
-                             wait_time=self.rwfunc.WAIT_TIME,
                              channels_start=self.rwfunc.CHANNELS_START,
                              channels_end=self.rwfunc.CHANNELS_END)
+
         try:
             self.KeyDAQ.init_inst()
         except errors.VisaIOError:
@@ -372,21 +377,10 @@ class measUI():
         print(message)  
         self.txt_console.insert(tk.INSERT, message)
 
-        self.main_loopTHREAD = threading.Thread(target=self.main_loop, daemon=True)
-        self.main_loopTHREAD.start()
-
-    def main_loop(self):
-        """ Main loop 
-
-        Wait for the original file to be created and then create new file.
-        Copy heading and enter main loop.
-        Main loop checks for new line, executes measurements and writes to new file.
-        """
-
         self.rwfunc.create_file(self.rwfunc.INPUT_FILE_PATH,
-                                self.rwfunc.INPUT_FILENAME,
-                                self.rwfunc.OUTPUT_FILE_PATH,
-                                self.rwfunc.OUTPUT_FILENAME)
+                        self.rwfunc.INPUT_FILENAME,
+                        self.rwfunc.OUTPUT_FILE_PATH,
+                        self.rwfunc.OUTPUT_FILENAME)
 
         message = f"[INFO] Files created.\n"
         print(message)
@@ -397,9 +391,18 @@ class measUI():
         message = f"[INFO] Heading written.\n"
         print(message)
         self.txt_console.insert(tk.INSERT, message)
-
-        # Remove the configure button
+        
+        # Remove the configure button just in case
         self.btn_setup.grid_remove()
+
+        self.main_loopTHREAD = threading.Thread(target=self.main_loop, daemon=True)
+        self.main_loopTHREAD.start()
+
+    def main_loop(self):
+        """ Main loop 
+        Main loop checks for new line, executes measurements and writes to new file.
+
+        """
 
         message = f"[INFO] {curr_time()}: Started program.\n"
         print(message)
@@ -416,6 +419,7 @@ class measUI():
                     message = f"[INFO] {curr_time()}: Reached timeout time.\n"
                     print(message)
                     self.txt_console.insert(tk.INSERT, message)
+                    # If timeout is reached exit the main loop
                     break
 
                 # If there is a new line execute measurement
@@ -443,7 +447,11 @@ class measUI():
                 time.sleep(self.rwfunc.WAIT_TIME/2)
 
     def update_time(self):
-        # Update time function call only once at beginning
+        """ Function to start the update time 
+        thread in the background.
+
+        """        
+        
         self.timeThread = threading.Thread(target=self.update_time_thread, daemon=True)
         self.timeThread.start()
 

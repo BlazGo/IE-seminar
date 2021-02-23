@@ -1,7 +1,7 @@
 import pyvisa
 import time
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 class KeyDAQ():
@@ -16,11 +16,31 @@ class KeyDAQ():
 
     """
 
-    def __init__(self, meas_num=11, wait_time=1, channels_start=101, channels_end=105, graph=False):
+    def __init__(self, meas_num=11, channels_start=101, channels_end=105, tolerance=1.0, graph=False):
         """ Initializes instrument resources
-
         Init method to initialize pyvisa resource manager and set measurement
-        parameters. (TODO: Graph, show measurements in real time)
+        parameters.
+
+        Parameters
+        ----------
+        meas_num : int
+            Numer of readings to take per one measurement.
+        channels_start : int
+            Starting channel to scan
+        channels_end : int
+            Ending channel to scan
+        tolerance : float
+            Measurement tolerance for outliers.
+        graph : bool
+            Show graph
+
+        If the starting channel and the ending channel are the same we
+        specify later on in the measurement function the correct form.
+
+        Tolerance is a condition for outliers. Any measurement that deviates
+        from the median for more than the specified tolerance will be ignored.
+
+        TODO: Graph, show measurements in real time
 
         """
         
@@ -28,36 +48,38 @@ class KeyDAQ():
         print(f"[INFO] Found resources: {self.rm.list_resources()}")
 
         self.MEAS_NUM = meas_num
-        self.WAIT_TIME = wait_time
         self.CHANNELS_START = channels_start
         self.CHANNELS_END = channels_end
         self.CHANNELS_NUM = channels_end - channels_start +1
+
+        self.TOLERANCE = tolerance
         self.GRAPH = graph
 
         # self.inst.query_delay = 0.0 # Doesnt do much 0.0 default
         # lowest it can go ~140ms for 10 channels
         time.sleep(0.5)
 
-    def init_inst(self):
+    def init_inst(self, resource="USB0::0x2A8D::0x5001::MY58004219::0::INSTR"):
         """ Initializes the session with the instrument
         
-        Initializes the session, select the first found
-        resource.
-        TODO: selection what instrument to use or always
-        find the default one (Keysight DAQ970A)
+        Parameters
+        ----------
+        resource : string
+            The address of the instrument with which the 
+            session will be opened.
 
         """
         
+        print(f"[INFO] Opening resource: {resource}")
         try:
-            resource = self.rm.list_resources()[0]
-        except:
-            resource = "USB0::0x2A8D::0x5001::MY58004219::0::INSTR"
-            print(f"[INFO] Setting default Instrument address. Check response.")
-
-        self.inst = self.rm.open_resource(resource,
+            self.inst = self.rm.open_resource(resource,
                                            read_termination = "\n", 
                                            write_termination = "\n")
-        self.inst.timeout = 4000
+        except pyvisa.errors.VisaIOError:
+            print(f"[ERROR] Insufficient location information or the requested device or resource is not present in the system.")
+            raise
+
+        self.inst.timeout = 120000 # [ms]
         print("[INFO] Instrument initialized")
 
     def check_response(self):
@@ -89,7 +111,8 @@ class KeyDAQ():
         ----------
         channel_temps : list of numbers
             processed temperatures [list 1xCHANNEL_NUM]
-        
+        TODO not yet implemented
+
         """
 
         # if nothing is connected value -9.9e+37
@@ -112,25 +135,20 @@ class KeyDAQ():
 
         Tcouple = "J"
         resolution = "0.01"
+        
         channels = f"{self.CHANNELS_START}:{self.CHANNELS_END}"
+        if self.CHANNELS_START == self.CHANNELS_END:
+            channels = f"{self.CHANNELS_START}"
+
         command = f"MEASure:TEMPerature:TCouple? {Tcouple},{resolution},(@{channels})"
                
         meas_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
-        meas_iteration = 1
-        while meas_iteration <= self.MEAS_NUM:
-            print(f"Current iteration: {meas_iteration}")
-            start = time.time()
 
+        for meas_iteration in range(0, self.MEAS_NUM + 1):
             temp_raw = self.inst.query_ascii_values(command)
-            
-            print(f"Instrument time: {round((time.time()-start)*1000,3)} [ms]")
-
             for i in range(0, len(temp_raw)):
-                meas_array[meas_iteration-1,i] = temp_raw[i]
+                meas_array[meas_iteration, i] = temp_raw[i]
 
-            meas_iteration += 1
-
-        self.temp_array = meas_array
         return meas_array
 
     def process_measurements(self, measurements):
@@ -160,7 +178,7 @@ class KeyDAQ():
             for measurement in temp_array_raw[:,channel]:
                 # Check each measurement row
                 diff = measurement - medians[channel]
-                if (abs(diff) <= 0.2):
+                if (abs(diff) <= self.TOLERANCE):
                     temp_temp.append(measurement)
             temp_whole.append(temp_temp)
 
@@ -192,12 +210,13 @@ class KeyDAQ():
 
     def graph(self):
         """ Graph data in real time
-        TODO
+        TODO not implemented yet.
         """
-
+        """
         if self.GRAPH == True:
             plt.plot(range(0, self.CHANNELS_NUM), self.channel_temps)
             plt.show()
+        """
 
     def setup_inst(self):
         """ Inst. measurement parameters setup.

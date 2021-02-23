@@ -67,6 +67,7 @@ class measUI():
         self.rwfunc = fileFunc()
         # Read config file and set parameters
         self.rwfunc.read_config()
+        self.KeyDAQ_test = KeyDAQ()
 
         # Define UI basics
         self.root = master
@@ -112,6 +113,7 @@ class measUI():
         btn_start = tk.Button(self.root, text="Start", command=self.start_program, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
         btn_abort = tk.Button(self.root, text="Abort", command=self.abort, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
         btn_check_inst = tk.Button(m_frame, text="Check inst", command=self.check_instrument, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
+        btn_inst_scan = tk.Button(m_frame, text="Scan instruments", command=self.scan_for_inst, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
 
         self.txt_console = tk.Text(self.root, height=20, font=self.font_I, width=60)
 
@@ -128,7 +130,7 @@ class measUI():
         lbl_out_dir.grid(row=4, column=0, sticky="ew", padx=self.padx, pady=self.pady)
         lbl_out_name.grid(row=5, column=0, sticky="ew", padx=self.padx, pady=self.pady)
 
-        lbl_meas_setup.grid(row=6, column=0, sticky="ew", padx=self.padx, pady=self.pady, columnspan=3)
+        lbl_meas_setup.grid(row=6, column=0, sticky="ew", padx=self.padx, pady=self.pady, columnspan=4)
         lbl_inst_name.grid(row=7, column=0, sticky="ew", padx=self.padx, pady=self.pady)
         lbl_meas_num.grid(row=8, column=0, sticky="ew", padx=self.padx, pady=self.pady)
         lbl_channels.grid(row=9, column=0, sticky="ew", padx=self.padx, pady=self.pady)
@@ -149,6 +151,8 @@ class measUI():
         btn_abort.grid(row=11, column=0, sticky="w", padx=self.padx, pady=self.pady)
         btn_start.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
         btn_check_inst.grid(row=7, column=2, sticky="ew", padx=self.padx, pady=self.pady)
+        btn_inst_scan.grid(row=7, column=3, sticky="ew", padx=self.padx, pady=self.pady)
+
 
         self.txt_console.grid(row=1, column=2, sticky="news", padx=self.padx, pady=self.pady, rowspan=11)
 
@@ -201,10 +205,10 @@ class measUI():
         self.spi_wtime = tk.Spinbox(m_frame, from_=0.1, to=20, increment=0.1, font=self.font_I)
  
         # Button widgets
-        btn_reset = tk.Button(self.subwin, text="Reset", command=self.reset_to_default, width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
-        btn_save_return = tk.Button(self.subwin, text="Save and return", command=self.save_and_return, width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
         btn_cin_dir = tk.Button(f_frame, text="Change", command=self.get_in_dir_path, width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
         btn_cout_dir = tk.Button(f_frame, text="Change", command=self.get_out_dir_path, width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
+        btn_reset = tk.Button(self.subwin, text="Reset", command=self.reset_to_default, width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
+        btn_save_return = tk.Button(self.subwin, text="Save and return", command=self.save_and_return, width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
 
         # Widget grid (define positions and look)
         f_frame.grid(row=1, column=0, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
@@ -236,9 +240,9 @@ class measUI():
         self.spi_ch_end.grid(row=9, column=2, sticky="ew", padx=self.padx, pady=self.pady)
         self.spi_wtime.grid(row=10, column=1, sticky="ew", padx=self.padx, pady=self.pady)
 
-        btn_reset.grid(row=11, column=0, sticky="w", padx=self.padx, pady=self.pady)
         btn_save_return.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
         btn_cin_dir.grid(row=1, column=3, sticky="ew", padx=self.padx, pady=self.pady)
+        btn_reset.grid(row=11, column=0, sticky="w", padx=self.padx, pady=self.pady)
         btn_cout_dir.grid(row=3, column=3, sticky="ew", padx=self.padx, pady=self.pady)
 
         # Insert values into widgets
@@ -264,13 +268,11 @@ class measUI():
         """
         self.rwfunc.INPUT_DIR_PATH = self.ent_in_dir.get()
         self.rwfunc.INPUT_FILENAME = self.ent_in_name.get()
-        self.rwfunc.INPUT_FILE_PATH = os.path.join(
-            self.rwfunc.INPUT_DIR_PATH, self.rwfunc.INPUT_FILENAME)
+        self.rwfunc.INPUT_FILE_PATH = os.path.join(self.rwfunc.INPUT_DIR_PATH, self.rwfunc.INPUT_FILENAME)
 
         self.rwfunc.OUTPUT_DIR_PATH = self.ent_out_dir.get()
         self.rwfunc.OUTPUT_FILENAME = self.ent_out_name.get()
-        self.rwfunc.OUTPUT_FILE_PATH = os.path.join(
-            self.rwfunc.OUTPUT_DIR_PATH, self.rwfunc.OUTPUT_FILENAME)
+        self.rwfunc.OUTPUT_FILE_PATH = os.path.join(self.rwfunc.OUTPUT_DIR_PATH, self.rwfunc.OUTPUT_FILENAME)
 
         self.rwfunc.INSTRUMENT_NAME = self.ent_inst_name.get()
         self.rwfunc.MEAS_NUM = int(self.spi_meas_num.get())
@@ -513,29 +515,36 @@ class measUI():
         """ Prints out the instrument response to *IDN?
 
         """
-        self.KeyDAQ = KeyDAQ()
+
         try:
-            self.KeyDAQ.init_inst()
+            self.KeyDAQ_test.init_inst()
         except errors.VisaIOError:
-            message = f"[ERROR] Instrument may not be present.\n"
+            message = f"[ERROR] Insufficient location information or the requested device or resource is not present in the system.\n"
+            print(message)  
+            self.txt_console.insert(tk.INSERT, message)
+            raise
+        except errors.InvalidSession:
+            message = f"[ERROR] Invalid session handle. The resource might be closed.\n"
             print(message)  
             self.txt_console.insert(tk.INSERT, message)
             raise
 
-        response = self.KeyDAQ.check_response()
+        response = self.KeyDAQ_test.check_response()
+        self.KeyDAQ.close_session()
 
         message = f"[INFO] Instrument response to *IDN?: {response}\n"
         print(message)
         self.txt_console.insert(tk.INSERT, message)
 
-        self.KeyDAQ.close_session()
-
     def scan_for_inst(self):
         """ Returns a list of found resources to choose from
 
         """
+        inst_list = self.KeyDAQ_test.scan_resources()
+        message = f"[INFO] Instruments: {inst_list}\n"
+        print(message)
+        self.txt_console.insert(tk.INSERT, message) 
         
-        pass
 
 
 if __name__ == "__main__":

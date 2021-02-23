@@ -1,8 +1,7 @@
-import pyvisa as pyvisa
+import pyvisa
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-
 
 
 class KeyDAQ():
@@ -14,13 +13,17 @@ class KeyDAQ():
         try to use ivi backend
         - Keysight DAQ970 driver same bitness as OS
         - working with python 64-bit (the problem 32-bit python only?)
+
     """
+
     def __init__(self, meas_num=11, wait_time=1, channels_start=101, channels_end=105, graph=False):
         """ Initializes instrument resources
 
         Init method to initialize pyvisa resource manager and set measurement
         parameters. (TODO: Graph, show measurements in real time)
+
         """
+        
         self.rm = pyvisa.ResourceManager()
         print(f"[INFO] Found resources: {self.rm.list_resources()}")
 
@@ -42,7 +45,9 @@ class KeyDAQ():
         resource.
         TODO: selection what instrument to use or always
         find the default one (Keysight DAQ970A)
+
         """
+        
         try:
             resource = self.rm.list_resources()[0]
         except:
@@ -58,31 +63,51 @@ class KeyDAQ():
     def check_response(self):
         """ Returns instument response 
         
-        Sends command to send the instrument indetification
-        (usually name, brand, etc)
+        Sends command for instrument to send its identification
+        (usually name, brand, etc.)
+
+        Returns:
+        ----------
+        response : string
+            response to *IDN?
+        
         """
+
         response = self.inst.query("*IDN?")
         print(f"[INFO] Instrument response to *IDN?: {response}")
         return response
 
-    def scan_channels(self):
-        """ Scans channel and returns/selects connected ones
+    def scan_channels(self, channels_min=101, channels_max=119):
+        """ Scans all detected channels and tries to detect connected ones.
+
+        Parameters:
+        ----------
+        channels_min : int
+        channels_max : int
+
+        Returns:
+        ----------
+        channel_temps : list of numbers
+            processed temperatures [list 1xCHANNEL_NUM]
         
-        TODO: Automatic detection
         """
+
         # if nothing is connected value -9.9e+37
         # Start and end channels should consider all possible channels
-        self.channel_start = 101
-        self.channel_end = 111
-        self.channel_num = self.channel_end - self.channel_start
+        # scan_list = f"@({channels_min}:{channels_max})"
+        channel_candidates = []
+        return channel_candidates
 
     def acquire_measurements(self):
         """ Function to return measurement
+        Each column represents one channel, one row represents
+        measurement of all channels at one time.    
 
-        Can define the channels and number of measurements.
-        Returns array 
-        rows->channels 
-        column->measurements
+        Returns:
+        ----------
+        meas_array : array of numbers (floats)
+            measurements per channel [MEAS_NUMxCHANNEL_NUM]
+        
         """
 
         Tcouple = "J"
@@ -90,7 +115,7 @@ class KeyDAQ():
         channels = f"{self.CHANNELS_START}:{self.CHANNELS_END}"
         command = f"MEASure:TEMPerature:TCouple? {Tcouple},{resolution},(@{channels})"
                
-        self.temp_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
+        meas_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
         meas_iteration = 1
         while meas_iteration <= self.MEAS_NUM:
             print(f"Current iteration: {meas_iteration}")
@@ -101,15 +126,15 @@ class KeyDAQ():
             print(f"Instrument time: {round((time.time()-start)*1000,3)} [ms]")
 
             for i in range(0, len(temp_raw)):
-                self.temp_array[meas_iteration-1,i] = temp_raw[i]
+                meas_array[meas_iteration-1,i] = temp_raw[i]
 
             meas_iteration += 1
-        
-        return self.temp_array
 
-    def process_measurements(self):
-        """ Measurement process
-        Simple statistical process of data. Reads the median,
+        self.temp_array = meas_array
+        return meas_array
+
+    def process_measurements(self, measurements):
+        """ Simple statistical process of data. Reads the median,
         removes outliers and returns avg. of each channel. 
 
         Parameters:
@@ -124,9 +149,9 @@ class KeyDAQ():
             processed temperatures [list 1xCHANNEL_NUM]
         
         """
-        temp_array_raw = np.asarray(self.temp_array)
+
+        temp_array_raw = np.asarray(measurements)
         medians = np.median(temp_array_raw, axis = 0)
-        # print(f"Shape: {np.shape(temp_array_raw)}, Medians: {np.shape(medians)}")
 
         temp_whole = []
         for channel in range(0, self.CHANNELS_NUM):
@@ -144,11 +169,12 @@ class KeyDAQ():
             processed_temp.append(np.mean(np.asarray(channel)))
         
         self.channel_temps = processed_temp
-        return self.channel_temps
+        return processed_temp
 
     def get_measurements(self):
-        self.acquire_measurements()
-        self.process_measurements()
+        raw_measurements = self.acquire_measurements()
+        processed_measurements = self.process_measurements(raw_measurements)
+        return processed_measurements
 
     def close_session(self):
         """ Closes instrument session
@@ -168,14 +194,9 @@ class KeyDAQ():
         """ Graph data in real time
         TODO
         """
-        #plt.plot(self.temp_array)
-        #plt.show()
 
-        #print(self.channel_temps)
         if self.GRAPH == True:
-            fig, ax = plt.subplots()
-            ax.plot(range(0, self.CHANNELS_NUM), self.channel_temps)
-            ax.grid()
+            plt.plot(range(0, self.CHANNELS_NUM), self.channel_temps)
             plt.show()
 
     def setup_inst(self):
@@ -192,6 +213,20 @@ class KeyDAQ():
         """
         # CONFigure and MEASure command automatically selsects °C
         self.inst.query(f"UNIT:TEMP C,(@{self.CHANNELS_START}:{self.CHANNELS_END})")
+        self.inst.query(f"TEMP:TRANS:TC:RJUN:TYPE INT, (@{self.CHANNELS_START}:{self.CHANNELS_END})")
+
+    def scan_resources(self):
+        """ Scan connected devices
+
+        Returns:
+        ----------
+        res_list : tuple of connnected devices
+        
+        """
+        rm_scan = pyvisa.ResourceManager()
+        res_list = rm_scan.list_resources()
+        rm_scan.close()
+        return res_list
 
 if __name__ == "__main__":
     """ Test run
@@ -200,19 +235,16 @@ if __name__ == "__main__":
     """
     
     try:
-        inst = KeyDAQ(meas_num=17, graph=True)
+        inst = KeyDAQ(meas_num=17)
 
         inst.init_inst()
         inst.scan_channels()
 
         meas_time = time.time()
-        inst.acquire_measurements()
-        print(f"Meas time: {round((time.time()-meas_time)*1000,3)} [ms]")
+        measurements = inst.get_measurements()
+        print(f"Calc time: {round((time.time()-meas_time)*1000,3)} [ms]")
+        print(measurements)
 
-        calc_time = time.time()
-        inst.process_measurements()
-        print(f"Calc time: {round((time.time()-calc_time)*1000,3)} [ms]")
-        
         inst.close_session()
 
     except KeyboardInterrupt as e:

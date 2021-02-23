@@ -5,6 +5,7 @@ import threading
 import tkinter as tk
 from tkinter import filedialog
 from datetime import datetime
+from pyvisa import errors
 
 # Custom libraries
 from instlib import KeyDAQ
@@ -78,174 +79,78 @@ class measUI():
         m_frame = tk.Frame(self.root, bg=self.color_bg_s, relief="sunken")
 
         # Descriptions display
-        self.lbl_clock = tk.Label(self.root, 
-                                width=18,
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_console = tk.Label(self.root,
-                                text="Console",
-                                font=self.font_L,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_file_setup = tk.Label(f_frame,
-                                text="File setup",
-                                font=self.font_L,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_in_dir = tk.Label(f_frame,
-                                text="Input file folder path",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_in_name = tk.Label(f_frame,
-                                text="Input filename",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_out_dir = tk.Label(f_frame,
-                                text="Output file folder path",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_out_name = tk.Label(f_frame,
-                                text="Output filename",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_meas_setup = tk.Label(m_frame,
-                                text="Measurement setup",
-                                font=self.font_L,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_inst_name = tk.Label(m_frame,
-            	                text="Instrument",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_meas_num = tk.Label(m_frame,
-                                text="Measurement number",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_channels = tk.Label(m_frame,
-                                text="Channels",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_chan_des = tk.Label(m_frame,
-                	            text="Start:End",
-                                bg=self.color_bg,
-                                fg=self.color_text)
-        lbl_wait_time = tk.Label(m_frame,
-                                text="Wait time",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_units = tk.Label(m_frame,
-                                text="[seconds]",
-                                bg=self.color_bg,
-                                fg=self.color_text)
+        self.lbl_clock = tk.Label(self.root,  width=18, font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_console = tk.Label(self.root, text="Console", font=self.font_L, bg=self.color_lbl, fg=self.color_text)
+        lbl_file_setup = tk.Label(f_frame, text="File setup", font=self.font_L, bg=self.color_lbl, fg=self.color_text)
+        lbl_in_dir = tk.Label(f_frame, text="Input file folder path", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_in_name = tk.Label(f_frame, text="Input filename", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_out_dir = tk.Label(f_frame, text="Output file folder path", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_out_name = tk.Label(f_frame, text="Output filename", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_meas_setup = tk.Label(m_frame, text="Measurement setup", font=self.font_L, bg=self.color_lbl, fg=self.color_text)
+        lbl_inst_name = tk.Label(m_frame, text="Instrument", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_meas_num = tk.Label(m_frame, text="Measurement number", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_channels = tk.Label(m_frame, text="Channels", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_chan_des = tk.Label(m_frame, text="Start:End", bg=self.color_bg, fg=self.color_text)
+        lbl_wait_time = tk.Label(m_frame, text="Wait time", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_units = tk.Label(m_frame, text="[seconds]", bg=self.color_bg, fg=self.color_text)
 
         # Values display
-        self.lbl_in_dirD = tk.Label(f_frame, text=self.rwfunc.INPUT_DIR_PATH,
-                                    font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
-        self.lbl_in_nameD = tk.Label(f_frame, text=self.rwfunc.INPUT_FILENAME,
-                                     font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
-        self.lbl_out_dirD = tk.Label(f_frame, text=self.rwfunc.OUTPUT_DIR_PATH,
-                                     font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
-        self.lbl_out_nameD = tk.Label(f_frame, text=self.rwfunc.OUTPUT_FILENAME,
-                                      font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
+        self.lbl_in_dirD = tk.Label(f_frame, text=self.rwfunc.INPUT_DIR_PATH, font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
+        self.lbl_in_nameD = tk.Label(f_frame, text=self.rwfunc.INPUT_FILENAME, font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
+        self.lbl_out_dirD = tk.Label(f_frame, text=self.rwfunc.OUTPUT_DIR_PATH, font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
+        self.lbl_out_nameD = tk.Label(f_frame, text=self.rwfunc.OUTPUT_FILENAME, font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
 
-        self.lbl_inst_nameD = tk.Label(m_frame, text=self.rwfunc.INSTRUMENT_NAME, font=self.font_I,
-                                       bg=self.color_disp, fg=self.color_text, relief="sunken")
-        self.lbl_meas_numD = tk.Label(m_frame, text=self.rwfunc.MEAS_NUM,
-                                      font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
+        self.lbl_inst_nameD = tk.Label(m_frame, text=self.rwfunc.INSTRUMENT_NAME, font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
+        self.lbl_meas_numD = tk.Label(m_frame, text=self.rwfunc.MEAS_NUM, font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
 
         channels = f"{self.rwfunc.CHANNELS_START}:{self.rwfunc.CHANNELS_END}"
-        self.lbl_channelsD = tk.Label(
-            m_frame, text=channels, font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
-        self.lbl_wait_timeD = tk.Label(m_frame, text=self.rwfunc.WAIT_TIME,
-                                       font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
+        self.lbl_channelsD = tk.Label(m_frame, text=channels, font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
+        self.lbl_wait_timeD = tk.Label(m_frame, text=self.rwfunc.WAIT_TIME,font=self.font_I, bg=self.color_disp, fg=self.color_text, relief="sunken")
 
         # Buttons
-        self.btn_setup = tk.Button(self.root, text="Configure", command=self.create_subwindow,
-                                   font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
-        btn_start = tk.Button(self.root, text="Start", command=self.start_program,
-                              font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
-        btn_abort = tk.Button(self.root, text="Abort", command=self.abort,
-                              font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
-        btn_check_inst = tk.Button(m_frame, text="Check inst", command=self.check_instrument,
-                                   font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
+        self.btn_setup = tk.Button(self.root, text="Configure", command=self.create_subwindow, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
+        btn_start = tk.Button(self.root, text="Start", command=self.start_program, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
+        btn_abort = tk.Button(self.root, text="Abort", command=self.abort, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
+        btn_check_inst = tk.Button(m_frame, text="Check inst", command=self.check_instrument, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
 
-        self.txt_console = tk.Text(
-            self.root, height=20, font=self.font_I, width=60)
+        self.txt_console = tk.Text(self.root, height=20, font=self.font_I, width=60)
 
         # Place widgets
-        self.lbl_clock.grid(row=0, column=1, sticky="e",
-                            padx=self.padx, pady=self.pady)
-        lbl_console.grid(row=0, column=2, sticky="ew",
-                         padx=self.padx, pady=self.pady)
+        self.lbl_clock.grid(row=0, column=1, sticky="e", padx=self.padx, pady=self.pady)
+        lbl_console.grid(row=0, column=2, sticky="ew", padx=self.padx, pady=self.pady)
 
-        f_frame.grid(row=2, column=0, columnspan=2, sticky="ew",
-                     padx=self.padx, pady=self.pady)
-        m_frame.grid(row=7, column=0, columnspan=2, sticky="ew",
-                     padx=self.padx, pady=self.pady)
+        f_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=self.padx, pady=self.pady)
+        m_frame.grid(row=7, column=0, columnspan=2, sticky="ew", padx=self.padx, pady=self.pady)
 
-        lbl_file_setup.grid(row=1, column=0, sticky="ew",
-                            columnspan=3, padx=self.padx, pady=self.pady)
-        lbl_in_dir.grid(row=2, column=0, sticky="ew",
-                        padx=self.padx, pady=self.pady)
-        lbl_in_name.grid(row=3, column=0, sticky="ew",
-                         padx=self.padx, pady=self.pady)
-        lbl_out_dir.grid(row=4, column=0, sticky="ew",
-                         padx=self.padx, pady=self.pady)
-        lbl_out_name.grid(row=5, column=0, sticky="ew",
-                          padx=self.padx, pady=self.pady)
+        lbl_file_setup.grid(row=1, column=0, sticky="ew", padx=self.padx, pady=self.pady, columnspan=3)
+        lbl_in_dir.grid(row=2, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_in_name.grid(row=3, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_out_dir.grid(row=4, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_out_name.grid(row=5, column=0, sticky="ew", padx=self.padx, pady=self.pady)
 
-        lbl_meas_setup.grid(row=6, column=0, sticky="ew",
-                            columnspan=3, padx=self.padx, pady=self.pady)
-        lbl_inst_name.grid(row=7, column=0, sticky="ew",
-                           padx=self.padx, pady=self.pady)
-        lbl_meas_num.grid(row=8, column=0, sticky="ew",
-                          padx=self.padx, pady=self.pady)
-        lbl_channels.grid(row=9, column=0, sticky="ew",
-                          padx=self.padx, pady=self.pady)
-        lbl_chan_des.grid(row=9, column=2, sticky="ew",
-                          padx=self.padx, pady=self.pady)
-        lbl_wait_time.grid(row=10, column=0, sticky="ew",
-                           padx=self.padx, pady=self.pady)
-        lbl_units.grid(row=10, column=2, sticky="ew",
-                       padx=self.padx, pady=self.pady)
+        lbl_meas_setup.grid(row=6, column=0, sticky="ew", padx=self.padx, pady=self.pady, columnspan=3)
+        lbl_inst_name.grid(row=7, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_meas_num.grid(row=8, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_channels.grid(row=9, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_chan_des.grid(row=9, column=2, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_wait_time.grid(row=10, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_units.grid(row=10, column=2, sticky="ew", padx=self.padx, pady=self.pady)
 
-        self.lbl_in_dirD.grid(row=2, column=1, columnspan=2,
-                              sticky="ew", padx=self.padx, pady=self.pady)
-        self.lbl_in_nameD.grid(row=3, column=1, columnspan=2,
-                               sticky="ew", padx=self.padx, pady=self.pady)
-        self.lbl_out_dirD.grid(row=4, column=1, columnspan=2,
-                               sticky="ew", padx=self.padx, pady=self.pady)
-        self.lbl_out_nameD.grid(
-            row=5, column=1, columnspan=2, sticky="ew", padx=self.padx, pady=self.pady)
-        self.lbl_inst_nameD.grid(
-            row=7, column=1, sticky="ew", padx=self.padx, pady=self.pady)
-        self.lbl_meas_numD.grid(
-            row=8, column=1, sticky="ew", padx=self.padx, pady=self.pady)
-        self.lbl_channelsD.grid(
-            row=9, column=1, sticky="ew", padx=self.padx, pady=self.pady)
-        self.lbl_wait_timeD.grid(
-            row=10, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+        self.lbl_in_dirD.grid(row=2, column=1, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
+        self.lbl_in_nameD.grid(row=3, column=1, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
+        self.lbl_out_dirD.grid(row=4, column=1, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
+        self.lbl_out_nameD.grid(row=5, column=1, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
+        self.lbl_inst_nameD.grid(row=7, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+        self.lbl_meas_numD.grid(row=8, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+        self.lbl_channelsD.grid(row=9, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+        self.lbl_wait_timeD.grid(row=10, column=1, sticky="ew", padx=self.padx, pady=self.pady)
 
-        self.btn_setup.grid(row=0, column=0, sticky="w",
-                            padx=self.padx, pady=self.pady)
-        btn_abort.grid(row=11, column=0, sticky="w",
-                       padx=self.padx, pady=self.pady)
-        btn_start.grid(row=11, column=1, sticky="e",
-                       padx=self.padx, pady=self.pady)
-        btn_check_inst.grid(row=7, column=2, sticky="ew",
-                            padx=self.padx, pady=self.pady)
+        self.btn_setup.grid(row=0, column=0, sticky="w", padx=self.padx, pady=self.pady)
+        btn_abort.grid(row=11, column=0, sticky="w", padx=self.padx, pady=self.pady)
+        btn_start.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
+        btn_check_inst.grid(row=7, column=2, sticky="ew", padx=self.padx, pady=self.pady)
 
-        self.txt_console.grid(row=1, column=2, rowspan=11,
-                              sticky="news", padx=self.padx, pady=self.pady)
+        self.txt_console.grid(row=1, column=2, sticky="news", padx=self.padx, pady=self.pady, rowspan=11)
 
         f_frame.columnconfigure(2, weight=1)
         m_frame.columnconfigure(1, weight=1)
@@ -266,69 +171,20 @@ class measUI():
         m_frame = tk.Frame(self.subwin, bg=self.color_bg_s)
 
         # Label widgets
-        lbl_file_setup = tk.Label(f_frame,
-                                text="File setup",
-                                font=self.font_L,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_in_dir = tk.Label(f_frame,
-                                text="Input file folder path",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_in_name = tk.Label(f_frame,
-                                text="Input filename",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_out_dir = tk.Label(f_frame,
-                                text="Output file folder path",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_out_name = tk.Label(f_frame,
-                                text="Output filename",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
+        lbl_file_setup = tk.Label(f_frame, text="File setup", font=self.font_L, bg=self.color_lbl, fg=self.color_text)
+        lbl_in_dir = tk.Label(f_frame, text="Input file folder path", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_in_name = tk.Label(f_frame, text="Input filename", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_out_dir = tk.Label(f_frame, text="Output file folder path", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_out_name = tk.Label(f_frame, text="Output filename", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
 
-        lbl_meas_setup = tk.Label(m_frame,
-                                text="Measurement setup",
-                                font=self.font_L,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_inst_name = tk.Label(m_frame,
-                                text="Instrument",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_meas_num = tk.Label(m_frame,
-                                text="Measurement number",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_start = tk.Label(m_frame,
-                                text="Start",
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_end = tk.Label(m_frame,
-                                text="End",
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_channels = tk.Label(m_frame,
-                                text="Channels",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_wait_time = tk.Label(m_frame,
-                                text="Wait time",
-                                font=self.font_M,
-                                bg=self.color_lbl,
-                                fg=self.color_text)
-        lbl_units = tk.Label(m_frame,
-                                text="[seconds]",
-                                bg=self.color_lbl,
-                                fg=self.color_text)
+        lbl_meas_setup = tk.Label(m_frame, text="Measurement setup", font=self.font_L, bg=self.color_lbl, fg=self.color_text)
+        lbl_inst_name = tk.Label(m_frame, text="Instrument", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_meas_num = tk.Label(m_frame, text="Measurement number", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_start = tk.Label(m_frame, text="Start", bg=self.color_lbl, fg=self.color_text)
+        lbl_end = tk.Label(m_frame, text="End", bg=self.color_lbl, fg=self.color_text)
+        lbl_channels = tk.Label(m_frame, text="Channels", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_wait_time = tk.Label(m_frame, text="Wait time", font=self.font_M, bg=self.color_lbl, fg=self.color_text)
+        lbl_units = tk.Label(m_frame, text="[seconds]", bg=self.color_lbl, fg=self.color_text)
 
         # Entry widgets
         self.ent_in_dir = tk.Entry(f_frame, width=90, font=self.font_I)
@@ -345,74 +201,47 @@ class measUI():
         self.spi_wtime = tk.Spinbox(m_frame, from_=0.1, to=20, increment=0.1, font=self.font_I)
  
         # Button widgets
-        btn_reset = tk.Button(self.subwin, text="Reset", command=self.reset_to_default,
-                              width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
-        btn_save_return = tk.Button(self.subwin, text="Save and return", command=self.save_and_return,
-                                    width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
-        btn_cin_dir = tk.Button(f_frame, text="Change", command=self.get_in_dir_path,
-                                width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
-        btn_cout_dir = tk.Button(f_frame, text="Change", command=self.get_out_dir_path,
-                                 width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
+        btn_reset = tk.Button(self.subwin, text="Reset", command=self.reset_to_default, width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
+        btn_save_return = tk.Button(self.subwin, text="Save and return", command=self.save_and_return, width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
+        btn_cin_dir = tk.Button(f_frame, text="Change", command=self.get_in_dir_path, width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
+        btn_cout_dir = tk.Button(f_frame, text="Change", command=self.get_out_dir_path, width=18, font=self.font_M, bg=self.color_btn, fg=self.color_text)
 
         # Widget grid (define positions and look)
-        f_frame.grid(row=1, column=0, columnspan=2, sticky="ew",
-                            padx=self.padx, pady=self.pady)
-        m_frame.grid(row=6, column=0, columnspan=2, sticky="ew",
-                            padx=self.padx, pady=self.pady)
+        f_frame.grid(row=1, column=0, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
+        m_frame.grid(row=6, column=0, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
 
-        lbl_file_setup.grid(row=0, column=0, columnspan=3, sticky="ew",
-                            padx=self.padx, pady=self.pady)
-        lbl_in_dir.grid(row=1, column=0, sticky="ew",
-                        padx=self.padx, pady=self.pady)
-        lbl_in_name.grid(row=2, column=0, sticky="ew",
-                         padx=self.padx, pady=self.pady)
-        lbl_out_dir.grid(row=3, column=0, sticky="ew",
-                         padx=self.padx, pady=self.pady)
-        lbl_out_name.grid(row=4, column=0, sticky="ew",
-                          padx=self.padx, pady=self.pady)
+        lbl_file_setup.grid(row=0, column=0, sticky="ew", padx=self.padx, pady=self.pady, columnspan=3)
+        lbl_in_dir.grid(row=1, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_in_name.grid(row=2, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_out_dir.grid(row=3, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_out_name.grid(row=4, column=0, sticky="ew", padx=self.padx, pady=self.pady)
 
-        lbl_meas_setup.grid(row=5, column=0, columnspan=3, sticky="ew",
-                            padx=self.padx, pady=self.pady)
-        lbl_inst_name.grid(row=6, column=0, sticky="ew",
-                           padx=self.padx, pady=self.pady)
-        lbl_meas_num.grid(row=7, column=0, sticky="ew",
-                          padx=self.padx, pady=self.pady)
-        lbl_start.grid(row=8, column=1, sticky="ew",
-                       padx=self.padx, pady=self.pady)
-        lbl_end.grid(row=8, column=2, sticky="ew",
-                     padx=self.padx, pady=self.pady)
-        lbl_channels.grid(row=9, column=0, sticky="ew",
-                          padx=self.padx, pady=self.pady)
-        lbl_wait_time.grid(row=10, column=0, sticky="ew",
-                           padx=self.padx, pady=self.pady)
-        lbl_units.grid(row=10, column=2, sticky="ew",
-                       padx=self.padx, pady=self.pady)
+        lbl_meas_setup.grid(row=5, column=0, columnspan=3, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_inst_name.grid(row=6, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_meas_num.grid(row=7, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_start.grid(row=8, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_end.grid(row=8, column=2, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_channels.grid(row=9, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_wait_time.grid(row=10, column=0, sticky="ew", padx=self.padx, pady=self.pady)
+        lbl_units.grid(row=10, column=2, sticky="ew", padx=self.padx, pady=self.pady)
 
-        self.ent_in_dir.grid(row=1, column=1, sticky="ew",
-                             columnspan=2, padx=self.padx, pady=self.pady)
-        self.ent_in_name.grid(row=2, column=1, sticky="ew",
-                              columnspan=2, padx=self.padx, pady=self.pady)
-        self.ent_out_dir.grid(row=3, column=1, sticky="ew",
-                              columnspan=2, padx=self.padx, pady=self.pady)
-        self.ent_out_name.grid(row=4, column=1, sticky="ew",
-                               columnspan=2, padx=self.padx, pady=self.pady)
+        self.ent_in_dir.grid(row=1, column=1, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
+        self.ent_in_name.grid(row=2, column=1, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
+        self.ent_out_dir.grid(row=3, column=1, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
+        self.ent_out_name.grid(row=4, column=1, sticky="ew", padx=self.padx, pady=self.pady, columnspan=2)
 
-        self.ent_inst_name.grid(row=6, column=1, sticky="ew",
-                           padx=self.padx, pady=self.pady)
-        self.spi_meas_num.grid(row=7, column=1, sticky="ew",
-                           padx=self.padx, pady=self.pady)
-        self.spi_ch_start.grid(row=9, column=1, sticky="ew",
-                           padx=self.padx, pady=self.pady)
-        self.spi_ch_end.grid(row=9, column=2, sticky="ew",
-                           padx=self.padx, pady=self.pady)
-        self.spi_wtime.grid(row=10, column=1, sticky="ew",
-                           padx=self.padx, pady=self.pady)
+        self.ent_inst_name.grid(row=6, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+        self.spi_meas_num.grid(row=7, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+        self.spi_ch_start.grid(row=9, column=1, sticky="ew", padx=self.padx, pady=self.pady)
+        self.spi_ch_end.grid(row=9, column=2, sticky="ew", padx=self.padx, pady=self.pady)
+        self.spi_wtime.grid(row=10, column=1, sticky="ew", padx=self.padx, pady=self.pady)
 
         btn_reset.grid(row=11, column=0, sticky="w", padx=self.padx, pady=self.pady)
         btn_save_return.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
         btn_cin_dir.grid(row=1, column=3, sticky="ew", padx=self.padx, pady=self.pady)
         btn_cout_dir.grid(row=3, column=3, sticky="ew", padx=self.padx, pady=self.pady)
 
+        # Insert values into widgets
         self.spi_meas_num.delete(0, tk.END)
         self.spi_ch_start.delete(0, tk.END)
         self.spi_ch_end.delete(0, tk.END)
@@ -520,27 +349,28 @@ class measUI():
     def start_program(self):
         """ Button function START
 
-        Starting procedure of the program
+        Starting procedure of the program.
+        Initialize instrument, start the main loop thread.
+
         """
 
-        message = f"[INFO] {curr_time()}: Started program.\n"
-        print(message)
-        self.txt_console.insert(tk.INSERT, message)
-
-        # Pass the arguments to instrument class
         self.KeyDAQ = KeyDAQ(meas_num=self.rwfunc.MEAS_NUM,
                              wait_time=self.rwfunc.WAIT_TIME,
                              channels_start=self.rwfunc.CHANNELS_START,
                              channels_end=self.rwfunc.CHANNELS_END)
-        self.KeyDAQ.init_inst()
+        try:
+            self.KeyDAQ.init_inst()
+        except errors.VisaIOError:
+            message = f"[ERROR] Instrument may not be present. Cannot continue.\n"
+            print(message)  
+            self.txt_console.insert(tk.INSERT, message)
+            raise
 
         message = f"[INFO] Instrument initialized.\n"
         print(message)  
         self.txt_console.insert(tk.INSERT, message)
 
-        # Define thread and start
-        self.main_loopTHREAD = threading.Thread(target=self.main_loop,
-                                                daemon=True)
+        self.main_loopTHREAD = threading.Thread(target=self.main_loop, daemon=True)
         self.main_loopTHREAD.start()
 
     def main_loop(self):
@@ -568,6 +398,10 @@ class measUI():
 
         # Remove the configure button
         self.btn_setup.grid_remove()
+
+        message = f"[INFO] {curr_time()}: Started program.\n"
+        print(message)
+        self.txt_console.insert(tk.INSERT, message)
 
         timeout_timer = time.time()
         while True:
@@ -635,11 +469,9 @@ class measUI():
 
         # If you only open and immedialtely close the filedialog
         # to ask for directory it immediately sets variable as ""
-        if directory == "":
-            return
-        else:
+        if directory != "":
             self.rwfunc.INPUT_DIR_PATH = directory
-
+        
         # Subwindow closes when using filedialog
         # Have to reopen it after
         self.create_subwindow()
@@ -654,9 +486,7 @@ class measUI():
 
         # If you only open and immedialtely close the filedialog
         # to ask for directory it immediately sets variable as ""
-        if directory == "":
-            return
-        else:
+        if directory != "":
             self.rwfunc.OUTPUT_DIR_PATH = directory
 
         # Subwindow closes when using filedialog
@@ -672,7 +502,7 @@ class measUI():
 
         """
 
-        message = "[INFO] Checking inst connection"
+        message = "[INFO] Checking inst connection\n"
         print(message)
         self.txt_console.insert(tk.INSERT, message)
 
@@ -680,9 +510,18 @@ class measUI():
         checkInstThread.start()
 
     def check_inst_thread(self):
-        # Checks response to *IDN?
+        """ Prints out the instrument response to *IDN?
+
+        """
         self.KeyDAQ = KeyDAQ()
-        self.KeyDAQ.init_inst()
+        try:
+            self.KeyDAQ.init_inst()
+        except errors.VisaIOError:
+            message = f"[ERROR] Instrument may not be present.\n"
+            print(message)  
+            self.txt_console.insert(tk.INSERT, message)
+            raise
+
         response = self.KeyDAQ.check_response()
 
         message = f"[INFO] Instrument response to *IDN?: {response}\n"
@@ -690,6 +529,13 @@ class measUI():
         self.txt_console.insert(tk.INSERT, message)
 
         self.KeyDAQ.close_session()
+
+    def scan_for_inst(self):
+        """ Returns a list of found resources to choose from
+
+        """
+        
+        pass
 
 
 if __name__ == "__main__":

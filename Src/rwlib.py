@@ -67,8 +67,7 @@ class fileFunc:
         print("[INFO] Reading config file")
 
         # Get absolute path (should be safe to move)
-        path = '/'.join((os.path.abspath(__file__).replace('\\',
-                                                           '/')).split('/')[:-1])
+        path = '/'.join((os.path.abspath(__file__).replace('\\','/')).split('/')[:-1])
 
         config = configparser.ConfigParser()
         config.read(os.path.join(path, config_filename))
@@ -90,10 +89,8 @@ class fileFunc:
         self.CHANNELS_END = int(instrument_setup.get("Channels_end"))
 
         # For convenience join the dir path and filename
-        self.INPUT_FILE_PATH = os.path.join(
-            self.INPUT_DIR_PATH, self.INPUT_FILENAME)
-        self.OUTPUT_FILE_PATH = os.path.join(
-            self.OUTPUT_DIR_PATH, self.OUTPUT_FILENAME)
+        self.INPUT_FILE_PATH = os.path.join(self.INPUT_DIR_PATH, self.INPUT_FILENAME)
+        self.OUTPUT_FILE_PATH = os.path.join(self.OUTPUT_DIR_PATH, self.OUTPUT_FILENAME)
 
         self.CHANNEL_NUM = self.CHANNELS_END - self.CHANNELS_START
 

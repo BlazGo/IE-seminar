@@ -1,17 +1,20 @@
 from configparser import ConfigParser
+import os
 
 """
 Create the config.ini file
 By running this code you can generate a new config file
 
-Output:
-    - config.ini file (with default program parameters)
+Returns:
+----------
+config.ini : file (with default program parameters)
+
 """
 
-filename = "config.ini" # Output filename
+filename = "config.ini"  # Output filename
+script_path = os.path.dirname(os.path.realpath(__file__))
 
 config = ConfigParser()
-# Default
 config["DEFAULT"] = {"Input_dir_path"       : "C:/measurements",
                      "Input_filename"       : "input.txt",
                      "Output_dir_path"      : "C:/measurements/modify",
@@ -25,9 +28,9 @@ config["DEFAULT"] = {"Input_dir_path"       : "C:/measurements",
                      "Channels_end"         : "105"
                      }
 
-config["FILE_SETUP"] = {"Input_dir_path"    : "C:/Users/dd/Desktop/Fe/SRM/IE-seminar/",
+config["FILE_SETUP"] = {"Input_dir_path"    : str(script_path),
                         "Input_filename"    : "input_file.txt",
-                        "Output_dir_path"   : "C:/Users/dd/Desktop/Fe/SRM/IE-seminar/",
+                        "Output_dir_path"   : str(script_path),
                         "Output_filename"   : "output_file.txt"
                         }
 

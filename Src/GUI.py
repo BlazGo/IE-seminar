@@ -1,10 +1,10 @@
 import os
 import sys
-import time
 import threading
+import time
 import tkinter as tk
-from tkinter import filedialog
 from datetime import datetime
+from tkinter import filedialog
 from pyvisa import errors
 
 # Custom libraries
@@ -572,3 +572,5 @@ if __name__ == "__main__":
 
     for key in dictionary:
         print(f"{key}:\t-->\t{dictionary[key]}")
+
+    print("\n*---------------------------------------------------------------------*")

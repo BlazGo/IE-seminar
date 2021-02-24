@@ -44,6 +44,7 @@ class fileFunc:
         self.WAIT_TIME = "EMPTY"
         self.CHANNELS_START = "EMPTY"
         self.CHANNELS_END = "EMPTY"
+        self.TOLERANCE = "EMPTY"
 
         self.CHANNEL_NUM = "EMPTY"
 
@@ -87,6 +88,7 @@ class fileFunc:
         self.WAIT_TIME = float(instrument_setup.get("Wait_time"))
         self.CHANNELS_START = int(instrument_setup.get("Channels_start"))
         self.CHANNELS_END = int(instrument_setup.get("Channels_end"))
+        self.TOLERANCE = int(instrument_setup.get("Tolerance"))
 
         # For convenience join the dir path and filename
         self.INPUT_FILE_PATH = os.path.join(self.INPUT_DIR_PATH, self.INPUT_FILENAME)
@@ -153,8 +155,7 @@ class fileFunc:
 
         # Additional info
         start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-        additional_info = (
-            f"Start time: {start_time},\tInstrument: {self.INSTRUMENT_NAME},\tMeas num: {self.MEAS_NUM},\tWait time: {self.WAIT_TIME}\n")
+        additional_info = f"Start time: {start_time},\tInstrument: {self.INSTRUMENT_NAME},\tMeas num: {self.MEAS_NUM},\tWait time: {self.WAIT_TIME}\n"
 
         # Read the file
         input_lines = self.input_file.readlines()

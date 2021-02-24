@@ -1,4 +1,4 @@
-from configparser import ConfigParser
+import configparser
 import os
 
 """
@@ -11,10 +11,10 @@ config.ini : file (with default program parameters)
 
 """
 
-filename = "config.ini"  # Output filename
-script_path = os.path.dirname(os.path.realpath(__file__))
+filename = "config.ini"   # Output filename
+script_path = os.path.dirname(os.path.realpath(__file__))  # Current script location
 
-config = ConfigParser()
+config = configparser.ConfigParser()
 config["DEFAULT"] = {"Input_dir_path"       : "C:/measurements",
                      "Input_filename"       : "input.txt",
                      "Output_dir_path"      : "C:/measurements/modify",
@@ -38,6 +38,7 @@ config["INSTRUMENT_SETUP"] = {  "Instrument"        : "Keysight DAQ970A",
                                 "Instrument_address": "USB0::0x2A8D::0x5001::MY58004219::0::INSTR",
                                 "Thermocouple_type" : "J",
                                 "Meas_num"          : "9",
+                                "Tolerance"         : "1",
                                 "Wait_time"         : "2.5",
                                 "Channels_start"    : "101",
                                 "Channels_end"      : "105"

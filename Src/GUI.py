@@ -571,8 +571,14 @@ class measUI:
         message = f"[INFO] Test measurement: {meas}"
         print(message)
         self.txt_console.insert(tk.INSERT, message + "\n")
-
-        self.KeyDAQ_test.close_session()
+        
+        try:
+            for element in meas:
+                # What is the expected temperature?
+                if element >= 200 or element <= -1:
+                    raise ValueError("[WARN] Some channels may not be configured correctly")
+        finally:
+            self.KeyDAQ_test.close_session()
 
     def scan_for_inst(self):
         """ Returns a list of found resources to choose from

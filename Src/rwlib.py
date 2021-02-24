@@ -40,6 +40,7 @@ class fileFunc:
         self.OUTPUT_FILE_PATH = "EMPTY"
 
         self.INSTRUMENT_NAME = "EMPTY"
+        self.INSTRUMENT_ADDRESS = "EMPTY"
         self.MEAS_NUM = "EMPTY"
         self.WAIT_TIME = "EMPTY"
         self.CHANNELS_START = "EMPTY"
@@ -52,7 +53,7 @@ class fileFunc:
         self.input_file = None
         self.output_file = None
         self.last_line = "None"
-        self.line_num = 1
+        self.line_num = 0
 
     def read_config(self, config_filename="config.ini"):
         """ Reads the configuration file and saves parameters as
@@ -78,17 +79,18 @@ class fileFunc:
         instrument_setup = config["INSTRUMENT_SETUP"]
 
         # Retrieve all the (needed) variables
-        self.INPUT_DIR_PATH = file_setup.get("Input_dir_path")
-        self.INPUT_FILENAME = file_setup.get("Input_filename")
-        self.OUTPUT_DIR_PATH = file_setup.get("Output_dir_path")
-        self.OUTPUT_FILENAME = file_setup.get("Output_filename")
+        self.INPUT_DIR_PATH = file_setup.get("input_dir_path")
+        self.INPUT_FILENAME = file_setup.get("input_filename")
+        self.OUTPUT_DIR_PATH = file_setup.get("output_dir_path")
+        self.OUTPUT_FILENAME = file_setup.get("output_filename")
 
-        self.INSTRUMENT_NAME = instrument_setup.get("Instrument")
-        self.MEAS_NUM = int(instrument_setup.get("Meas_num"))
-        self.WAIT_TIME = float(instrument_setup.get("Wait_time"))
-        self.CHANNELS_START = int(instrument_setup.get("Channels_start"))
-        self.CHANNELS_END = int(instrument_setup.get("Channels_end"))
-        self.TOLERANCE = int(instrument_setup.get("Tolerance"))
+        self.INSTRUMENT_NAME = instrument_setup.get("instrument")
+        self.INSTRUMENT_ADDRESS = instrument_setup.get("instrument_address")
+        self.MEAS_NUM = int(instrument_setup.get("meas_num"))
+        self.WAIT_TIME = float(instrument_setup.get("wait_time"))
+        self.CHANNELS_START = int(instrument_setup.get("channels_start"))
+        self.CHANNELS_END = int(instrument_setup.get("channels_end"))
+        self.TOLERANCE = int(instrument_setup.get("tolerance"))
 
         # For convenience join the dir path and filename
         self.INPUT_FILE_PATH = os.path.join(self.INPUT_DIR_PATH, self.INPUT_FILENAME)

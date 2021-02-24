@@ -1,6 +1,8 @@
-import pyvisa
 import time
+import random
 import numpy as np
+import pyvisa
+
 #import matplotlib.pyplot as plt
 
 
@@ -16,7 +18,7 @@ class KeyDAQ():
 
     """
 
-    def __init__(self, meas_num=11, channels_start=101, channels_end=105, tolerance=1.0, graph=False):
+    def __init__(self, meas_num=11, channels_start=101, channels_end=105, tolerance=1.0, graph=False, simulation=False):
         """ Initializes instrument resources
         Init method to initialize pyvisa resource manager and set measurement
         parameters.
@@ -54,7 +56,7 @@ class KeyDAQ():
 
         self.TOLERANCE = tolerance
         self.GRAPH = graph
-
+        self.SIMULATION = simulation
         # self.inst.query_delay = 0.0 # Doesnt do much 0.0 default
         # lowest it can go ~140ms for 10 channels
         time.sleep(0.5)
@@ -70,17 +72,20 @@ class KeyDAQ():
 
         """
         
+        if self.SIMULATION == True:
+            print(f"[INFO] Using simulation.")
+            return
+
         print(f"[INFO] Opening resource: {resource}")
         try:
             self.inst = self.rm.open_resource(resource,
                                            read_termination = "\n", 
                                            write_termination = "\n")
+            self.inst.timeout = 120000 # [ms]
+            print("[INFO] Instrument initialized")
         except pyvisa.errors.VisaIOError:
             print(f"[ERROR] Insufficient location information or the requested device or resource is not present in the system.")
-            raise
-
-        self.inst.timeout = 120000 # [ms]
-        print("[INFO] Instrument initialized")
+            raise     
 
     def check_response(self):
         """ Returns instument response 
@@ -94,10 +99,13 @@ class KeyDAQ():
             response to *IDN?
         
         """
-
-        response = self.inst.query("*IDN?")
-        print(f"[INFO] Instrument response to *IDN?: {response}")
-        return response
+        if self.SIMULATION == True:
+            print(f"[INFO] Using simulation.")
+            return "Simulation without instrument"
+        else:    
+            response = self.inst.query("*IDN?")
+            print(f"[INFO] Instrument response to *IDN?: {response}")
+            return response
 
     def scan_channels(self, channels_min=101, channels_max=119):
         """ Scans all detected channels and tries to detect connected ones.
@@ -132,6 +140,11 @@ class KeyDAQ():
             measurements per channel [MEAS_NUMxCHANNEL_NUM]
         
         """
+
+        if self.SIMULATION == True:
+            sim_meas = np.random.uniform(low=15.0, high=25.0, size=(self.CHANNELS_NUM, self.MEAS_NUM))
+            print(sim_meas)
+            return sim_meas
 
         Tcouple = "J"
         resolution = "0.01"

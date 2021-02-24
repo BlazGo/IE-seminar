@@ -31,13 +31,13 @@ def curr_time():
     return datetime.now().strftime("%H:%M:%S %d/%m/%Y")
 
 
-class measUI():
+class measUI:
     """
     Class with UI definition 
     """
 
     # Time to timeout 
-    TIMEOUT_MAX = 1200  # [s]
+    TIMEOUT_MAX = 120*60  # [s]
     
     # Widget padding
     padx = 6
@@ -114,8 +114,8 @@ class measUI():
         self.btn_setup = tk.Button(self.root, text="Configure", command=self.create_subwindow, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
         btn_start = tk.Button(self.root, text="Start", command=self.start_program, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
         btn_abort = tk.Button(self.root, text="Abort", command=self.abort, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
-        btn_check_inst = tk.Button(m_frame, text="Check inst", command=self.check_instrument, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
-        btn_inst_scan = tk.Button(m_frame, text="Scan instruments", command=self.scan_for_inst, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
+        self.btn_check_inst = tk.Button(m_frame, text="Check inst", command=self.check_instrument, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
+        self.btn_inst_scan = tk.Button(m_frame, text="Scan instruments", command=self.scan_for_inst, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
 
         self.txt_console = tk.Text(self.root, height=20, font=self.font_I, width=60)
 
@@ -123,8 +123,8 @@ class measUI():
         self.lbl_clock.grid(row=0, column=1, sticky="e", padx=self.padx, pady=self.pady)
         lbl_console.grid(row=0, column=2, sticky="ew", padx=self.padx, pady=self.pady)
 
-        f_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=self.padx, pady=self.pady)
-        m_frame.grid(row=7, column=0, columnspan=2, sticky="ew", padx=self.padx, pady=self.pady)
+        f_frame.grid(row=2, column=0, columnspan=2, sticky="new", padx=self.padx, pady=self.pady)
+        m_frame.grid(row=7, column=0, columnspan=2, sticky="new", padx=self.padx, pady=self.pady)
 
         lbl_file_setup.grid(row=1, column=0, sticky="ew", padx=self.padx, pady=self.pady, columnspan=3)
         lbl_in_dir.grid(row=2, column=0, sticky="ew", padx=self.padx, pady=self.pady)
@@ -152,8 +152,8 @@ class measUI():
         self.btn_setup.grid(row=0, column=0, sticky="w", padx=self.padx, pady=self.pady)
         btn_abort.grid(row=11, column=0, sticky="w", padx=self.padx, pady=self.pady)
         btn_start.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
-        btn_check_inst.grid(row=7, column=2, sticky="ew", padx=self.padx, pady=self.pady)
-        btn_inst_scan.grid(row=7, column=3, sticky="ew", padx=self.padx, pady=self.pady)
+        self.btn_check_inst.grid(row=7, column=2, sticky="ew", padx=self.padx, pady=self.pady)
+        self.btn_inst_scan.grid(row=7, column=3, sticky="ew", padx=self.padx, pady=self.pady)
 
 
         self.txt_console.grid(row=1, column=2, sticky="news", padx=self.padx, pady=self.pady, rowspan=11)
@@ -356,71 +356,86 @@ class measUI():
     def start_program(self):
         """ Button function START
 
-        Starting procedure of the program.
-        Initialize instrument, wait for the original file to be created and then create new file.
-        Copy heading and enter main loop.
-        """
-
-        self.KeyDAQ = KeyDAQ(meas_num=self.rwfunc.MEAS_NUM,
-                             channels_start=self.rwfunc.CHANNELS_START,
-                             channels_end=self.rwfunc.CHANNELS_END)
-
-        try:
-            self.KeyDAQ.init_inst()
-        except errors.VisaIOError:
-            message = f"[ERROR] Instrument may not be present. Cannot continue.\n"
-            print(message)  
-            self.txt_console.insert(tk.INSERT, message)
-            raise
-
-        message = f"[INFO] Instrument initialized.\n"
-        print(message)  
-        self.txt_console.insert(tk.INSERT, message)
-
-        self.rwfunc.create_file(self.rwfunc.INPUT_FILE_PATH,
-                        self.rwfunc.INPUT_FILENAME,
-                        self.rwfunc.OUTPUT_FILE_PATH,
-                        self.rwfunc.OUTPUT_FILENAME)
-
-        message = f"[INFO] Files created.\n"
-        print(message)
-        self.txt_console.insert(tk.INSERT, message)
-
-        self.rwfunc.write_heading()
-
-        message = f"[INFO] Heading written.\n"
-        print(message)
-        self.txt_console.insert(tk.INSERT, message)
+        Start the main program thread.
         
-        # Remove the configure button just in case
-        self.btn_setup.grid_remove()
+        """
 
         self.main_loopTHREAD = threading.Thread(target=self.main_loop, daemon=True)
         self.main_loopTHREAD.start()
 
     def main_loop(self):
-        """ Main loop 
+        """ Main program
+        Initialize instrument, copy heading remove buttons.
         Main loop checks for new line, executes measurements and writes to new file.
 
         """
 
-        message = f"[INFO] {curr_time()}: Started program.\n"
-        print(message)
-        self.txt_console.insert(tk.INSERT, message)
+        self.KeyDAQ = KeyDAQ(meas_num=self.rwfunc.MEAS_NUM,
+                             channels_start=self.rwfunc.CHANNELS_START,
+                             channels_end=self.rwfunc.CHANNELS_END,
+                             tolerance=self.rwfunc.TOLERANCE,
+                             simulation=True)
 
-        timeout_timer = time.time()
+        try:
+            self.KeyDAQ.init_inst()
+        except errors.VisaIOError:
+            message = f"[ERROR] Instrument may not be present. Cannot continue."
+            print(message)  
+            self.txt_console.insert(tk.INSERT, message + "\n")
+            raise
+
+        message = f"[INFO] Instrument initialized."
+        print(message)  
+        self.txt_console.insert(tk.INSERT, message + "\n")
+
+        try:
+            self.rwfunc.create_file(self.rwfunc.INPUT_FILE_PATH,
+                                self.rwfunc.INPUT_FILENAME,
+                                self.rwfunc.OUTPUT_FILE_PATH,
+                                self.rwfunc.OUTPUT_FILENAME)
+        except FileExistsError:
+            message = f"[ERROR] Files already exists. Change the name of the output file."
+            print(message)
+            self.txt_console.insert(tk.INSERT, message + "\n")
+            raise
+
+        message = f"[INFO] Files created."
+        print(message)
+        self.txt_console.insert(tk.INSERT, message + "\n")
+
+        self.rwfunc.write_heading()
+
+        message = f"[INFO] Heading written."
+        print(message)
+        self.txt_console.insert(tk.INSERT, message + "\n")
+
+        message = f"[INFO] {curr_time()}: Started program."
+        print(message)
+        self.txt_console.insert(tk.INSERT, message + "\n")
+
+        # Remove the unnecessary buttons just in case
+        self.btn_setup.grid_remove()
+        self.btn_inst_scan.grid_remove()
+        self.btn_check_inst.grid_remove()
+
+        #timeout_timer = time.time()
+        status = 0
         while True:
             try:
                 # Check if UI console is longer than specified
                 if int(float(self.txt_console.index("end"))) >= 30:
                     self.txt_console.delete(1.0, tk.END)
 
+                """
                 if time.time() - timeout_timer >= self.TIMEOUT_MAX:
                     message = f"[INFO] {curr_time()}: Reached timeout time.\n"
                     print(message)
                     self.txt_console.insert(tk.INSERT, message)
                     # If timeout is reached exit the main loop
                     break
+                """
+
+                start = time.time()
 
                 # If there is a new line execute measurement
                 if self.rwfunc.check_newline() == True:
@@ -429,22 +444,36 @@ class measUI():
                     # write line
                     self.rwfunc.write_new_line(self.rwfunc.last_line, measurements)
 
-                    message = f"[INFO] {curr_time()}: Line {self.rwfunc.line_num} written. Temp: {measurements}\n"
+                    measurements = [round(num, 1) for num in measurements]
+                    message = f"[INFO] {curr_time()}: Line {self.rwfunc.line_num} written. Temp: {measurements}"
                     print(message)
-                    self.txt_console.insert(tk.INSERT, message)
+                    self.txt_console.insert(tk.INSERT, message + "\n")
 
                     # reset the timeout timer
-                    timeout_timer = time.time()
+                    # timeout_timer = time.time()
+                    meas_time = (time.time() - start)*1e-3 # Get seconds
+                    time_remaining = self.rwfunc.WAIT_TIME - meas_time
+
+                    if time_remaining <= 0:
+                        time_remaining = 0
+                    if time_remaining > self.rwfunc.WAIT_TIME:
+                        time_remaining = self.rwfunc.WAIT_TIME
+
+                    time.sleep(time_remaining)
 
                 # If there is no new line wait a bit and start the timeout timer
                 elif self.rwfunc.check_newline() == False:
                     time.sleep(self.rwfunc.WAIT_TIME)
-                
+                status = 0
+
             except:
-                message = "[ERROR] Error occured turing main loop. Retrying..."
-                print(message)
-                self.txt_console.insert(tk.INSERT, message)
-                time.sleep(self.rwfunc.WAIT_TIME/2)
+                if status == 0:
+                    message = "[ERROR] Error occured turing main loop. Retrying..."
+                    print(message)
+                    self.txt_console.insert(tk.INSERT, message + "\n")
+                    time.sleep(self.rwfunc.WAIT_TIME/2)
+                    status = 1
+                pass
 
     def update_time(self):
         """ Function to start the update time 
@@ -464,9 +493,8 @@ class measUI():
             try:
                 self.lbl_clock.config(text=curr_time())
             except Exception as e:
-                message = f"[WARN] Error with clock.\n{e}"
-                print(message)
-                self.txt_console.insert(tk.INSERT, message)    
+                print(f"[WARN] Error with clock.{e}")
+                self.txt_console.insert(tk.INSERT, f"[WARN] Error with clock.\n{e}")    
             time.sleep(0.1)
 
     def get_in_dir_path(self):
@@ -552,7 +580,6 @@ class measUI():
         message = f"[INFO] Instruments: {inst_list}\n"
         print(message)
         self.txt_console.insert(tk.INSERT, message) 
-        
 
 
 if __name__ == "__main__":

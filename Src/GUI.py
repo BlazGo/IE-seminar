@@ -343,11 +343,11 @@ class measUI:
 
         try:
             self.KeyDAQ.close_session()
-        except Exception as e:
+        except AttributeError as e:
             # Only negative in fail:
             # instrument can be falsely detected as connected
             # next time (no response or connection, just display)
-            print(f"[WARN] Error during inst. session close. {e}")
+            print(f"[WARN] AttributeError during inst. session close: {e} ")
 
         print("[INFO] Done.")
         sys.exit()
@@ -562,12 +562,17 @@ class measUI:
             self.txt_console.insert(tk.INSERT, message)
             raise
 
-        response = self.KeyDAQ_test.check_response()
-        self.KeyDAQ_test.close_session()
+        response, meas = self.KeyDAQ_test.check_response()
 
-        message = f"[INFO] Instrument response to *IDN?: {response}\n"
+        message = f"[INFO] Instrument response to *IDN?: {response}"
         print(message)
-        self.txt_console.insert(tk.INSERT, message)
+        self.txt_console.insert(tk.INSERT, message + "\n")
+
+        message = f"[INFO] Test measurement: {meas}"
+        print(message)
+        self.txt_console.insert(tk.INSERT, message + "\n")
+
+        self.KeyDAQ_test.close_session()
 
     def scan_for_inst(self):
         """ Returns a list of found resources to choose from

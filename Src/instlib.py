@@ -100,11 +100,17 @@ class KeyDAQ():
         
         """
         if self.SIMULATION == True:
-            return "Simulation without instrument"
+            return "Simulation without instrument", self.get_measurements()
         else:    
             response = self.inst.query("*IDN?")
             print(f"[INFO] Instrument response to *IDN?: {response}")
-            return response
+        
+        try:
+            meas = self.get_measurements()
+            return response, meas
+        except Exception as e:
+            print(e)
+            return response, "None"
 
     def scan_channels(self, channels_min=101, channels_max=119):
         """ Scans all detected channels and tries to detect connected ones.
@@ -142,7 +148,17 @@ class KeyDAQ():
 
         if self.SIMULATION == True:
             sim_meas = np.random.uniform(low=18.0, high=22.0, size=(self.MEAS_NUM, self.CHANNELS_NUM))
-            #print(sim_meas)
+            """
+            meas = np.around(sim_meas[:,0], 1)
+            print(meas)
+            median = np.median(meas)
+            print(median)
+            meas = np.where(1<abs(meas-median), meas, 0)
+            meas = np.ma.masked_equal(meas,0)
+            print(meas)
+            meas = np.mean(meas)
+            print(meas)
+            """
             return sim_meas
 
         Tcouple = "J"

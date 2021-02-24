@@ -75,17 +75,17 @@ class KeyDAQ():
         if self.SIMULATION == True:
             print(f"[INFO] Using simulation.")
             return
-
-        print(f"[INFO] Opening resource: {resource}")
-        try:
-            self.inst = self.rm.open_resource(resource,
-                                           read_termination = "\n", 
-                                           write_termination = "\n")
-            self.inst.timeout = 120000 # [ms]
-            print("[INFO] Instrument initialized")
-        except pyvisa.errors.VisaIOError:
-            print(f"[ERROR] Insufficient location information or the requested device or resource is not present in the system.")
-            raise     
+        else:
+            print(f"[INFO] Opening resource: {resource}")
+            try:
+                self.inst = self.rm.open_resource(resource,
+                                            read_termination = "\n", 
+                                            write_termination = "\n")
+                self.inst.timeout = 120000 # [ms]
+                print("[INFO] Instrument initialized")
+            except pyvisa.errors.VisaIOError:
+                print(f"[ERROR] Insufficient location information or the requested device or resource is not present in the system.")
+                raise     
 
     def check_response(self):
         """ Returns instument response 
@@ -100,7 +100,6 @@ class KeyDAQ():
         
         """
         if self.SIMULATION == True:
-            print(f"[INFO] Using simulation.")
             return "Simulation without instrument"
         else:    
             response = self.inst.query("*IDN?")
@@ -142,8 +141,8 @@ class KeyDAQ():
         """
 
         if self.SIMULATION == True:
-            sim_meas = np.random.uniform(low=15.0, high=25.0, size=(self.CHANNELS_NUM, self.MEAS_NUM))
-            print(sim_meas)
+            sim_meas = np.random.uniform(low=18.0, high=22.0, size=(self.MEAS_NUM, self.CHANNELS_NUM))
+            #print(sim_meas)
             return sim_meas
 
         Tcouple = "J"
@@ -216,7 +215,9 @@ class KeyDAQ():
         """
        
         try:
-            self.inst.close()
+            self.rm.close()
+            if self.SIMULATION == False:
+                self.inst.close()
             print(f"[INFO] Session closed")
         except pyvisa.errors.InvalidSession:
             print(f"[WARN] Invalid session. The resource might be closed.")
@@ -267,14 +268,14 @@ if __name__ == "__main__":
     """
     
     try:
-        inst = KeyDAQ(meas_num=17)
+        inst = KeyDAQ(meas_num=17, simulation=True)
 
         inst.init_inst()
         inst.scan_channels()
 
         meas_time = time.time()
         measurements = inst.get_measurements()
-        print(f"Calc time: {round((time.time()-meas_time)*1000,3)} [ms]")
+        print(f"Measurement time: {round((time.time()-meas_time)*1000,3)} [ms]")
         print(measurements)
 
         inst.close_session()

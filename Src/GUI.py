@@ -16,7 +16,6 @@ def do_nothing():
     # Placeholder for buttons
     print("Something")
 
-
 def curr_time():
     """ Get current time.
 
@@ -56,20 +55,20 @@ class measUI:
     font_M = ('Leelawadee UI', 12)
     font_I = ('Consolas', 11)
 
-    def __init__(self, master, SIM=False):
+    def __init__(self, master, simulation=False):
         """ Main window
 
         """
         # Simple simulation not implemented
         # Best solution to replace instrument calls with
         # random number generator manually
-        self.SIM = SIM
+        self.SIM = simulation
 
         # Initiate class for files
         self.rwfunc = fileFunc()
         # Read config file and set parameters
         self.rwfunc.read_config()
-        self.KeyDAQ_test = KeyDAQ()
+        self.KeyDAQ_test = KeyDAQ(simulation=self.SIM)
 
         # Define UI basics
         self.root = master
@@ -114,7 +113,7 @@ class measUI:
         self.btn_setup = tk.Button(self.root, text="Configure", command=self.create_subwindow, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
         btn_start = tk.Button(self.root, text="Start", command=self.start_program, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
         btn_abort = tk.Button(self.root, text="Abort", command=self.abort, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
-        self.btn_check_inst = tk.Button(m_frame, text="Check inst", command=self.check_instrument, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
+        self.btn_check_inst = tk.Button(m_frame, text="Check inst", command=self.check_inst, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
         self.btn_inst_scan = tk.Button(m_frame, text="Scan instruments", command=self.scan_for_inst, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
 
         self.txt_console = tk.Text(self.root, height=20, font=self.font_I, width=60)
@@ -344,11 +343,11 @@ class measUI:
 
         try:
             self.KeyDAQ.close_session()
-        except:
+        except Exception as e:
             # Only negative in fail:
             # instrument can be falsely detected as connected
             # next time (no response or connection, just display)
-            print("[WARN] Error during inst. session close.")
+            print(f"[WARN] Error during inst. session close. {e}")
 
         print("[INFO] Done.")
         sys.exit()
@@ -374,10 +373,10 @@ class measUI:
                              channels_start=self.rwfunc.CHANNELS_START,
                              channels_end=self.rwfunc.CHANNELS_END,
                              tolerance=self.rwfunc.TOLERANCE,
-                             simulation=True)
+                             simulation=self.SIM)
 
         try:
-            self.KeyDAQ.init_inst()
+            self.KeyDAQ.init_inst(resource=self.rwfunc.INSTRUMENT_ADDRESS)
         except errors.VisaIOError:
             message = f"[ERROR] Instrument may not be present. Cannot continue."
             print(message)  
@@ -419,7 +418,6 @@ class measUI:
         self.btn_check_inst.grid_remove()
 
         #timeout_timer = time.time()
-        status = 0
         while True:
             try:
                 # Check if UI console is longer than specified
@@ -464,16 +462,15 @@ class measUI:
                 # If there is no new line wait a bit and start the timeout timer
                 elif self.rwfunc.check_newline() == False:
                     time.sleep(self.rwfunc.WAIT_TIME)
-                status = 0
 
-            except:
-                if status == 0:
-                    message = "[ERROR] Error occured turing main loop. Retrying..."
-                    print(message)
-                    self.txt_console.insert(tk.INSERT, message + "\n")
-                    time.sleep(self.rwfunc.WAIT_TIME/2)
-                    status = 1
-                pass
+            except Exception as e:
+                # If there was an error in main loop it was programming mistake.
+                # This is probably useless.
+                message = f"[ERROR] Error occured turing main loop. Retrying...\n Error {e}"
+                print(message)
+                self.txt_console.insert(tk.INSERT, message + "\n")
+                time.sleep(self.rwfunc.WAIT_TIME/2)
+                raise
 
     def update_time(self):
         """ Function to start the update time 
@@ -489,13 +486,13 @@ class measUI:
 
         """
        
-        while True:
-            try:
+        try:
+             while True:
                 self.lbl_clock.config(text=curr_time())
-            except Exception as e:
-                print(f"[WARN] Error with clock.{e}")
-                self.txt_console.insert(tk.INSERT, f"[WARN] Error with clock.\n{e}")    
-            time.sleep(0.1)
+                time.sleep(0.1)
+        except Exception as e:
+            print(f"[WARN] Error with clock.\n{e}")
+            self.txt_console.insert(tk.INSERT, f"[WARN] Error with clock.\n{e}")    
 
     def get_in_dir_path(self):
         """ Button function to get outpit file directory
@@ -531,7 +528,7 @@ class measUI:
         # Have to reopen it after
         self.create_subwindow()
 
-    def check_instrument(self):
+    def check_inst(self):
         """ Checks connection with instrument
 
         Parameters:
@@ -566,7 +563,7 @@ class measUI:
             raise
 
         response = self.KeyDAQ_test.check_response()
-        self.KeyDAQ.close_session()
+        self.KeyDAQ_test.close_session()
 
         message = f"[INFO] Instrument response to *IDN?: {response}\n"
         print(message)
@@ -585,7 +582,7 @@ class measUI:
 if __name__ == "__main__":
     
     root = tk.Tk()
-    measUI = measUI(root)
+    measUI = measUI(root, simulation=True)
     
     # Start clock update
     measUI.update_time()

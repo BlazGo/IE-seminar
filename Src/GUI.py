@@ -574,6 +574,7 @@ class measUI():
         print(message)
         self.txt_console.insert(tk.INSERT, message + "\n")
 
+        meas = [round(num, 1) for num in meas]
         message = f"[INFO] Test measurement: {meas}"
         print(message)
         self.txt_console.insert(tk.INSERT, message + "\n")

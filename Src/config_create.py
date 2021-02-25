@@ -39,7 +39,7 @@ config["INSTRUMENT_SETUP"] = {  "Instrument"        : "Keysight DAQ970A",
                                 "Thermocouple_type" : "J",
                                 "Meas_num"          : "9",
                                 "Tolerance"         : "1",
-                                "Wait_time"         : "2.5",
+                                "Wait_time"         : "2.0",
                                 "Channels_start"    : "101",
                                 "Channels_end"      : "105"
                                 }

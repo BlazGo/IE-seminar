@@ -30,7 +30,7 @@ def curr_time():
     return datetime.now().strftime("%H:%M:%S %d/%m/%Y")
 
 
-class measUI:
+class measUI():
     """
     Class with UI definition 
     """
@@ -306,6 +306,7 @@ class measUI:
 
         self.rwfunc.read_config()
 
+        # First delete the widget data if not it just adds
         self.ent_in_dir.delete(0, tk.END)
         self.ent_in_name.delete(0, tk.END)
         self.ent_out_dir.delete(0, tk.END)
@@ -316,6 +317,7 @@ class measUI:
         self.spi_ch_end.delete(0, tk.END)
         self.spi_wtime.delete(0, tk.END)
 
+        # Insert new data
         self.ent_in_dir.insert(0, self.rwfunc.INPUT_DIR_PATH)
         self.ent_in_name.insert(0, self.rwfunc.INPUT_FILENAME)
         self.ent_out_dir.insert(0, self.rwfunc.OUTPUT_DIR_PATH)
@@ -338,8 +340,8 @@ class measUI:
         # Try to correctly close files and session
         try:
             self.rwfunc.close_files()
-        except AttributeError:
-            print("[INFO] No file to close.")
+        except AttributeError as e:
+            print(f"[WARN] AttributeError during file close: No file to close. {e}")
 
         try:
             self.KeyDAQ.close_session()
@@ -347,6 +349,8 @@ class measUI:
             # Only negative in fail:
             # instrument can be falsely detected as connected
             # next time (no response or connection, just display)
+            # No error if you want to normally connect to it again,
+            # if of course it is present.
             print(f"[WARN] AttributeError during inst. session close: {e} ")
 
         print("[INFO] Done.")
@@ -408,14 +412,14 @@ class measUI:
         print(message)
         self.txt_console.insert(tk.INSERT, message + "\n")
 
-        message = f"[INFO] {curr_time()}: Started program."
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
-
         # Remove the unnecessary buttons just in case
         self.btn_setup.grid_remove()
         self.btn_inst_scan.grid_remove()
         self.btn_check_inst.grid_remove()
+        
+        message = f"[INFO] {curr_time()}: Started program."
+        print(message)
+        self.txt_console.insert(tk.INSERT, message + "\n")
 
         #timeout_timer = time.time()
         while True:
@@ -470,6 +474,8 @@ class measUI:
                 print(message)
                 self.txt_console.insert(tk.INSERT, message + "\n")
                 time.sleep(self.rwfunc.WAIT_TIME/2)
+                # Maybe put here .after() to restart the main loop
+                # probably only while loop?
                 raise
 
     def update_time(self):
@@ -537,9 +543,9 @@ class measUI:
 
         """
 
-        message = "[INFO] Checking inst connection\n"
+        message = "[INFO] Checking inst connection"
         print(message)
-        self.txt_console.insert(tk.INSERT, message)
+        self.txt_console.insert(tk.INSERT, message + "\n")
 
         checkInstThread = threading.Thread(target=self.check_inst_thread, daemon=True)
         checkInstThread.start()
@@ -585,9 +591,9 @@ class measUI:
 
         """
         inst_list = self.KeyDAQ_test.scan_resources()
-        message = f"[INFO] Instruments: {inst_list}\n"
+        message = f"[INFO] Instruments: {inst_list}"
         print(message)
-        self.txt_console.insert(tk.INSERT, message) 
+        self.txt_console.insert(tk.INSERT, message + "\n") 
 
 
 if __name__ == "__main__":

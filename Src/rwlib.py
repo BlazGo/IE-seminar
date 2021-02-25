@@ -24,13 +24,11 @@ class fileFunc:
 
     def __init__(self):
         """ Initialize all variables
+        Initialize all variables used in a wider scope in
+        the __init__ function first.
+
         """
 
-        # All variables used in wider scope are defined here first
-        # and are changed later in the operation
-
-        # Constants (while running the main loop)
-        # Also the variables which are for the user to define
         self.INPUT_DIR_PATH = "EMPTY"
         self.INPUT_FILENAME = "EMPTY"
         self.OUTPUT_DIR_PATH = "EMPTY"
@@ -41,18 +39,19 @@ class fileFunc:
 
         self.INSTRUMENT_NAME = "EMPTY"
         self.INSTRUMENT_ADDRESS = "EMPTY"
+
         self.MEAS_NUM = "EMPTY"
         self.WAIT_TIME = "EMPTY"
-        self.CHANNELS_START = "EMPTY"
-        self.CHANNELS_END = "EMPTY"
         self.TOLERANCE = "EMPTY"
 
+        self.CHANNELS_START = "EMPTY"
+        self.CHANNELS_END = "EMPTY"
         self.CHANNEL_NUM = "EMPTY"
 
         # Other variables
         self.input_file = None
         self.output_file = None
-        self.last_line = "None"
+        self.last_line = None
         self.line_num = 0
 
     def read_config(self, config_filename="config.ini"):
@@ -189,6 +188,7 @@ class fileFunc:
 
         line = None  # Referenced before assignment error
         # reads last line in file
+        # Faster than file.readlines()[-1]
         for line in self.input_file:
             pass
         if line == None:
@@ -232,6 +232,7 @@ class fileFunc:
         """ Closes both files the correct way.
 
         """
+        
         print("[INFO] Closing files")
         self.input_file.close()
         self.output_file.close()

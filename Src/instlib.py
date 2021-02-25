@@ -101,16 +101,14 @@ class KeyDAQ():
         """
         if self.SIMULATION == True:
             return "Simulation without instrument", self.get_measurements()
-        else:    
-            response = self.inst.query("*IDN?")
-            print(f"[INFO] Instrument response to *IDN?: {response}")
-        
-        try:
-            meas = self.get_measurements()
-            return response, meas
-        except Exception as e:
-            print(e)
-            return response, "None"
+        elif self.SIMULATION == False: 
+            try:   
+                response = self.inst.query("*IDN?")
+                print(f"[INFO] Instrument response to *IDN?: {response}")
+                return response, self.get_measurements()
+            except Exception as e:
+                print(e)
+                return f"[WARN] Error occured {e}", "None"
 
     def scan_channels(self, channels_min=101, channels_max=119):
         """ Scans all detected channels and tries to detect connected ones.

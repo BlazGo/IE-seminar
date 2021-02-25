@@ -76,13 +76,13 @@ class file_create:
         print("Entered main loop...")
         i = 1
         for i in range(8, len(self.original_lines)):
+            time.sleep(5)
             self.new_file.write(self.original_lines[i])  # write i-th line
             self.new_file.flush()  # refresh file? update
 
             now = datetime.now()
             curr_time = now.strftime("%d/%m/%Y %H:%M:%S")
             print(f"[INFO] Line written: {i-7}\tTime: {curr_time}")
-            time.sleep(5)
 
         print("[INFO] Done")
 

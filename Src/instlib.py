@@ -47,12 +47,16 @@ class KeyDAQ():
         """
         
         self.rm = pyvisa.ResourceManager()
-        print(f"[INFO] Found resources: {self.rm.list_resources()}")
+        print(f"[INFO] Found resources: {self.rm.list_resources(query='USB?*')}")
 
         self.MEAS_NUM = meas_num
         self.CHANNELS_START = channels_start
         self.CHANNELS_END = channels_end
         self.CHANNELS_NUM = channels_end - channels_start +1
+        
+        self.channels = f"{self.CHANNELS_START}:{self.CHANNELS_END}"
+        if self.CHANNELS_START == self.CHANNELS_END:
+            self.channels = f"{self.CHANNELS_START}"
 
         self.TOLERANCE = tolerance
         self.GRAPH = graph
@@ -165,11 +169,7 @@ class KeyDAQ():
         Tcouple = "J"
         resolution = "0.01"
         
-        channels = f"{self.CHANNELS_START}:{self.CHANNELS_END}"
-        if self.CHANNELS_START == self.CHANNELS_END:
-            channels = f"{self.CHANNELS_START}"
-
-        command = f"MEASure:TEMPerature:TCouple? {Tcouple},{resolution},(@{channels})"
+        command = f"MEASure:TEMPerature:TCouple? {Tcouple},{resolution},(@{self.channels})"
                
         meas_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
 
@@ -229,6 +229,9 @@ class KeyDAQ():
         executed properly the instrument "stays" in the memmory and
         in the next program run it can detect it even when not connected.
 
+        Further tests have shown they stay in memory despite "correctly"
+        closing the session.
+        
         """
        
         try:
@@ -274,9 +277,22 @@ class KeyDAQ():
         
         """
         rm_scan = pyvisa.ResourceManager()
-        res_list = rm_scan.list_resources()
+        res_list = rm_scan.list_resources(query='USB?*')
         rm_scan.close()
         return res_list
+
+    def read_error(self):
+        """ Function to read the instrument error
+
+        Returns:
+        ----------
+        error : str (Error message)
+
+        """
+        
+        error = self.inst.query("SYSTem:ERRor?")
+        return error
+
 
 if __name__ == "__main__":
     """ Test run

@@ -43,17 +43,26 @@ class measUI():
     pady = 3
     
     # Color definitions
-    color_bg = "#212121"
-    color_bg_s = "#1F2933"
-    color_lbl = "#323F4B"
-    color_disp = "#334E68"
-    color_text = "#F5F7FA"
-    color_btn = "#627D98"
+    dark_mode = False
+    if dark_mode == False:
+        color_bg =  "#F0F0F0"
+        color_bg_s = "#F0F0FF"
+        color_lbl = "#323F4B"
+        color_disp = "#334E68"
+        color_text = "#000000"
+        color_btn = "#627D98"
+    elif dark_mode == True:
+        color_bg =  "#212121"
+        color_bg_s = "#1F2933"
+        color_lbl = "#323F4B"
+        color_disp = "#334E68"
+        color_text = "#F5F7FA"
+        color_btn = "#627D98"
 
     # Font definitions
-    font_L = ('Leelawadee UI', 14)
+    font_L = ('Leelawadee UI', 12)
     font_M = ('Leelawadee UI', 12)
-    font_I = ('Consolas', 11)
+    font_I = ('Consolas', 10)
 
     def __init__(self, master, simulation=False):
         """ Main window
@@ -110,7 +119,7 @@ class measUI():
 
         # Buttons
         self.btn_setup = tk.Button(self.root, text="Configure", command=self.create_subwindow, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
-        btn_start = tk.Button(self.root, text="Start", command=self.start_program, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
+        self.btn_start = tk.Button(self.root, text="Start", command=self.start_program, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
         btn_abort = tk.Button(self.root, text="Abort", command=self.abort, font=self.font_M, width=18, bg=self.color_btn, fg=self.color_text)
         self.btn_check_inst = tk.Button(m_frame, text="Check inst", command=self.check_inst, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
         self.btn_inst_scan = tk.Button(m_frame, text="Scan instruments", command=self.scan_for_inst, font=self.font_I, height=1, bg=self.color_btn, fg=self.color_text)
@@ -149,7 +158,7 @@ class measUI():
 
         self.btn_setup.grid(row=0, column=0, sticky="w", padx=self.padx, pady=self.pady)
         btn_abort.grid(row=11, column=0, sticky="w", padx=self.padx, pady=self.pady)
-        btn_start.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
+        self.btn_start.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
         self.btn_check_inst.grid(row=7, column=2, sticky="ew", padx=self.padx, pady=self.pady)
         self.btn_inst_scan.grid(row=7, column=3, sticky="ew", padx=self.padx, pady=self.pady)
 
@@ -389,6 +398,10 @@ class measUI():
         message = f"[INFO] Instrument initialized."
         print(message)  
         self.txt_console.insert(tk.INSERT, message + "\n")
+        
+        message = f"[INFO] Waiting for file."
+        print(message)  
+        self.txt_console.insert(tk.INSERT, message + "\n")
 
         try:
             self.rwfunc.create_file(self.rwfunc.INPUT_FILE_PATH,
@@ -415,7 +428,8 @@ class measUI():
         self.btn_setup.grid_remove()
         self.btn_inst_scan.grid_remove()
         self.btn_check_inst.grid_remove()
-        
+        self.btn_start.grid_remove()
+
         message = f"[INFO] {curr_time()}: Started program."
         print(message)
         self.txt_console.insert(tk.INSERT, message + "\n")
@@ -469,10 +483,19 @@ class measUI():
             except Exception as e:
                 # If there was an error in main loop it was programming mistake.
                 # This is probably useless.
+                self.btn_start.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
                 message = f"[ERROR] Error occured turing main loop. Retrying...\n Error {e}"
                 print(message)
                 self.txt_console.insert(tk.INSERT, message + "\n")
                 time.sleep(self.rwfunc.WAIT_TIME/2)
+
+                try:
+                    error = self.KeyDAQ.read_error()
+                    print(error)
+                    self.txt_console.insert(tk.INSERT, error + "\n")
+                except Exception as e:
+                    print(e)
+                    pass              
                 # Maybe put here .after() to restart the main loop
                 # probably only while loop?
                 raise
@@ -553,7 +576,11 @@ class measUI():
         """ Prints out the instrument response to *IDN?
 
         """
-        self.KeyDAQ_test = KeyDAQ(simulation=self.SIM)
+        self.KeyDAQ_test = KeyDAQ(meas_num=self.rwfunc.MEAS_NUM,
+                                channels_start=self.rwfunc.CHANNELS_START,
+                                channels_end=self.rwfunc.CHANNELS_END,
+                                tolerance=self.rwfunc.TOLERANCE,
+                                simulation=self.SIM)
 
         try:
             self.KeyDAQ_test.init_inst()
@@ -591,7 +618,12 @@ class measUI():
         """ Returns a list of found resources to choose from
 
         """
-        self.KeyDAQ_test = KeyDAQ(simulation=self.SIM)
+        self.KeyDAQ_test = KeyDAQ(meas_num=self.rwfunc.MEAS_NUM,
+                                channels_start=self.rwfunc.CHANNELS_START,
+                                channels_end=self.rwfunc.CHANNELS_END,
+                                tolerance=self.rwfunc.TOLERANCE,
+                                simulation=self.SIM)
+                                
         inst_list = self.KeyDAQ_test.scan_resources()
         message = f"[INFO] Instruments: {inst_list}"
         print(message)
@@ -599,7 +631,7 @@ class measUI():
         try: 
             self.KeyDAQ_test.close_session()
         except AttributeError:
-            # No instrument initialized yet so it raises an attribute erroe
+            # No instrument initialized yet so it raises an attribute error
             # since it cant close it.
             pass
 

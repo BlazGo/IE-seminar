@@ -89,7 +89,7 @@ class fileFunc:
         self.WAIT_TIME = float(instrument_setup.get("wait_time"))
         self.CHANNELS_START = int(instrument_setup.get("channels_start"))
         self.CHANNELS_END = int(instrument_setup.get("channels_end"))
-        self.TOLERANCE = int(instrument_setup.get("tolerance"))
+        self.TOLERANCE = float(instrument_setup.get("tolerance"))
 
         # For convenience join the dir path and filename
         self.INPUT_FILE_PATH = os.path.join(self.INPUT_DIR_PATH, self.INPUT_FILENAME)
@@ -141,7 +141,7 @@ class fileFunc:
         self.input_file = open(ifilepath, 'r')
         print(f"[INFO] File: {ofilename} created.")
  
-    def write_heading(self, heading_lines=8):
+    def write_heading(self, heading_lines=9):
         """ Writes the heading. Copies the first N lines,
         adds additional parameters as the first line, adds
         another tab/column at the last line and writes
@@ -150,7 +150,7 @@ class fileFunc:
         Parameters:
         ----------
         heading_lines : int
-            Number of lines to copy (our case default=8).
+            Number of lines to copy (our case default=9).
         
         """
 

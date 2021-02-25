@@ -450,12 +450,14 @@ class measUI():
                     break
                 """
 
-                start = time.time()
 
                 # If there is a new line execute measurement
                 if self.rwfunc.check_newline() == True:
+                    start = time.time()
+
                     # measurement
                     measurements = self.KeyDAQ.get_measurements()
+                    
                     # write line
                     self.rwfunc.write_new_line(self.rwfunc.last_line, measurements)
 
@@ -464,17 +466,13 @@ class measUI():
                     print(message)
                     self.txt_console.insert(tk.INSERT, message + "\n")
 
-                    # reset the timeout timer
-                    # timeout_timer = time.time()
                     meas_time = (time.time() - start)*1e-3 # Get seconds
                     time_remaining = self.rwfunc.WAIT_TIME - meas_time
 
-                    if time_remaining <= 0:
-                        time_remaining = 0
-                    if time_remaining > self.rwfunc.WAIT_TIME:
-                        time_remaining = self.rwfunc.WAIT_TIME
-
-                    time.sleep(time_remaining)
+                    if time_remaining > 0 and time_remaining <= self.rwfunc.WAIT_TIME:
+                        time.sleep(time_remaining)
+                    else:
+                        time.sleep(self.rwfunc.WAIT_TIME / 2)
 
                 # If there is no new line wait a bit and start the timeout timer
                 elif self.rwfunc.check_newline() == False:
@@ -638,7 +636,7 @@ class measUI():
 if __name__ == "__main__":
     
     root = tk.Tk()
-    measUI = measUI(root, simulation=False)
+    measUI = measUI(root, simulation=True)
     
     # Start clock update
     measUI.update_time()

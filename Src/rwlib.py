@@ -51,7 +51,7 @@ class fileFunc:
         # Other variables
         self.input_file = None
         self.output_file = None
-        self.last_line = None
+        self.last_line = "EMPTY"
         self.line_num = 0
 
     def read_config(self, config_filename="config.ini"):
@@ -141,7 +141,7 @@ class fileFunc:
         self.input_file = open(ifilepath, 'r')
         print(f"[INFO] File: {ofilename} created.")
  
-    def write_heading(self, heading_lines=9):
+    def write_heading(self, heading_lines=8):
         """ Writes the heading. Copies the first N lines,
         adds additional parameters as the first line, adds
         another tab/column at the last line and writes
@@ -173,6 +173,7 @@ class fileFunc:
         # Write the heading
         self.output_file.writelines(additional_info)
         self.output_file.writelines(heading)
+        self.check_newline()
 
     def check_newline(self):
         """ Checks the last line of the file. If a change

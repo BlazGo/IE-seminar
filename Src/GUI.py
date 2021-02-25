@@ -68,7 +68,6 @@ class measUI():
         self.rwfunc = fileFunc()
         # Read config file and set parameters
         self.rwfunc.read_config()
-        self.KeyDAQ_test = KeyDAQ(simulation=self.SIM)
 
         # Define UI basics
         self.root = master
@@ -554,6 +553,7 @@ class measUI():
         """ Prints out the instrument response to *IDN?
 
         """
+        self.KeyDAQ_test = KeyDAQ(simulation=self.SIM)
 
         try:
             self.KeyDAQ_test.init_inst()
@@ -590,16 +590,22 @@ class measUI():
         """ Returns a list of found resources to choose from
 
         """
+        self.KeyDAQ_test = KeyDAQ(simulation=self.SIM)
         inst_list = self.KeyDAQ_test.scan_resources()
         message = f"[INFO] Instruments: {inst_list}"
         print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n") 
-
+        self.txt_console.insert(tk.INSERT, message + "\n")
+        try: 
+            self.KeyDAQ_test.close_session()
+        except AttributeError:
+            # No instrument initialized yet so it raises an attribute erroe
+            # since it cant close it.
+            pass
 
 if __name__ == "__main__":
     
     root = tk.Tk()
-    measUI = measUI(root, simulation=True)
+    measUI = measUI(root, simulation=False)
     
     # Start clock update
     measUI.update_time()

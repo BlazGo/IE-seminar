@@ -86,6 +86,9 @@ class KeyDAQ():
             except pyvisa.errors.VisaIOError:
                 print(f"[ERROR] Insufficient location information or the requested device or resource is not present in the system.")
                 raise     
+            except Exception as e:
+                print(e)
+                raise
 
     def check_response(self):
         """ Returns instument response 
@@ -104,7 +107,7 @@ class KeyDAQ():
         elif self.SIMULATION == False: 
             try:   
                 response = self.inst.query("*IDN?")
-                print(f"[INFO] Instrument response to *IDN?: {response}")
+                #print(f"[INFO] Instrument response to *IDN?: {response}")
                 return response, self.get_measurements()
             except Exception as e:
                 print(e)
@@ -170,7 +173,7 @@ class KeyDAQ():
                
         meas_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
 
-        for meas_iteration in range(0, self.MEAS_NUM + 1):
+        for meas_iteration in range(0, self.MEAS_NUM):
             temp_raw = self.inst.query_ascii_values(command)
             for i in range(0, len(temp_raw)):
                 meas_array[meas_iteration, i] = temp_raw[i]
@@ -282,7 +285,7 @@ if __name__ == "__main__":
     """
     
     try:
-        inst = KeyDAQ(meas_num=17, simulation=True)
+        inst = KeyDAQ(meas_num=17, simulation=False)
 
         inst.init_inst()
         inst.scan_channels()

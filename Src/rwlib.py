@@ -173,7 +173,22 @@ class fileFunc:
         # Write the heading
         self.output_file.writelines(additional_info)
         self.output_file.writelines(heading)
-        self.check_newline()
+        self.last_line = heading[-1]  # Save the last heading line as last line
+
+    def read_last_line(self):
+        """ Reads the last line of the file.
+
+        Returns:
+        ----------
+        line : str
+        
+        """
+        line = None  # Referenced before assignment error
+        # reads last line in file
+        # Faster than file.readlines()[-1]
+        for line in self.input_file:
+            pass
+        return line
 
     def check_newline(self):
         """ Checks the last line of the file. If a change
@@ -186,15 +201,11 @@ class fileFunc:
             change in last line returns False
         
         """
+        
+        line = self.read_last_line()
 
-        line = None  # Referenced before assignment error
-        # reads last line in file
-        # Faster than file.readlines()[-1]
-        for line in self.input_file:
-            pass
         if line == None:
             return False
-
         if line == self.last_line:
             return False
         elif line != self.last_line:

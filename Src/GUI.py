@@ -636,7 +636,7 @@ class measUI():
 if __name__ == "__main__":
     
     root = tk.Tk()
-    measUI = measUI(root, simulation=True)
+    measUI = measUI(root, simulation=False)
     
     # Start clock update
     measUI.update_time()

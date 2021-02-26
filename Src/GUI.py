@@ -472,7 +472,7 @@ class measUI():
                     if time_remaining > 0 and time_remaining <= self.rwfunc.WAIT_TIME:
                         time.sleep(time_remaining)
                     else:
-                        time.sleep(self.rwfunc.WAIT_TIME / 2)
+                        time.sleep(0.5)
 
                 # If there is no new line wait a bit and start the timeout timer
                 elif self.rwfunc.check_newline() == False:

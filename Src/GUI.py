@@ -170,7 +170,6 @@ class measUI():
         self.btn_check_inst.grid(row=7, column=2, sticky="ew", padx=self.padx, pady=self.pady)
         self.btn_inst_scan.grid(row=7, column=3, sticky="ew", padx=self.padx, pady=self.pady)
 
-
         self.txt_console.grid(row=1, column=2, sticky="news", padx=self.padx, pady=self.pady, rowspan=11)
 
         f_frame.columnconfigure(2, weight=1)

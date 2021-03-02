@@ -51,7 +51,7 @@ class fileFunc:
         # Other variables
         self.input_file = None
         self.output_file = None
-        self.last_line = "EMPTY"
+        self.last_line = None
         self.line_num = 0
 
     def read_config(self, config_filename="config.ini"):
@@ -95,7 +95,7 @@ class fileFunc:
         self.INPUT_FILE_PATH = os.path.join(self.INPUT_DIR_PATH, self.INPUT_FILENAME)
         self.OUTPUT_FILE_PATH = os.path.join(self.OUTPUT_DIR_PATH, self.OUTPUT_FILENAME)
 
-        self.CHANNEL_NUM = self.CHANNELS_END - self.CHANNELS_START
+        self.CHANNEL_NUM = self.CHANNELS_END - self.CHANNELS_START + 1
 
     def wait_file(self, filepath, filename=""):
         """ Waits for specified file to be created.
@@ -234,7 +234,7 @@ class fileFunc:
         string_to_write = original_line.strip("\n") + temp_string + "\n"
 
         self.output_file.write(string_to_write)
-        # Flush the buffer so it immediatelly writes the line
+        # Flush the buffer so it immediately writes the line
         self.output_file.flush()
 
         # Keep track of written lines

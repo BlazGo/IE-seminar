@@ -52,7 +52,7 @@ class KeyDAQ():
         self.MEAS_NUM = meas_num
         self.CHANNELS_START = channels_start
         self.CHANNELS_END = channels_end
-        self.CHANNELS_NUM = channels_end - channels_start +1
+        self.CHANNELS_NUM = channels_end - channels_start + 1
         
         self.channels = f"{self.CHANNELS_START}:{self.CHANNELS_END}"
         if self.CHANNELS_START == self.CHANNELS_END:

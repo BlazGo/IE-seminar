@@ -64,7 +64,7 @@ class measUI():
     font_M = ('Leelawadee UI', 12)
     font_I = ('Consolas', 10)
 
-    def __init__(self, master, simulation=False):
+    def __init__(self, simulation=False):
         """ Main window
 
         """
@@ -78,8 +78,16 @@ class measUI():
         # Read config file and set parameters
         self.rwfunc.read_config()
 
+        # Main window
+        self.main_window()
+        # Start the clock
+        self.update_time()
+        # Start the main thread
+        self.root.mainloop()
+
+    def main_window(self):
         # Define UI basics
-        self.root = master
+        self.root = tk.Tk()
         self.root.title("Merjenje temperature")
         #self.root.minsize(500, 400)
         # self.root.geometry("750x360")
@@ -634,14 +642,8 @@ class measUI():
             pass
 
 if __name__ == "__main__":
-    
-    root = tk.Tk()
-    measUI = measUI(root, simulation=False)
-    
-    # Start clock update
-    measUI.update_time()
-    # Start main UI loop
-    root.mainloop()
+
+    measUI = measUI(simulation=False)
 
     print("\n*---------------------------------------------------------------------*")
     print("Parameters:")

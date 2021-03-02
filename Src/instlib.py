@@ -174,10 +174,7 @@ class KeyDAQ():
         meas_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
 
         for meas_iteration in range(0, self.MEAS_NUM):
-            temp_raw = self.inst.query_ascii_values(command)
-            for i in range(0, len(temp_raw)):
-                meas_array[meas_iteration, i] = temp_raw[i]
-
+                meas_array[meas_iteration, :] = self.inst.query_ascii_values(command)
         return meas_array
 
     def process_measurements(self, measurements):
@@ -186,9 +183,8 @@ class KeyDAQ():
 
         Parameters:
         ----------
-        measurements : list of lists
-            Embedded lists 1xCHANNEL_NUM measurements. Len of 
-            parent list is based on MEAS_NUM.
+        measurements : array or list
+            dimensions MEAS_NUMxCHANNEL_NUM measurements.
 
         Returns:
         ----------
@@ -312,6 +308,7 @@ if __name__ == "__main__":
         print(measurements)
 
         inst.close_session()
+        print("Test passed.")
 
     except KeyboardInterrupt as e:
         print(f"Keyboard interrupt {e}")

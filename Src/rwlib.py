@@ -156,7 +156,7 @@ class fileFunc:
 
         # Additional info
         start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-        additional_info = f"Start time: {start_time},\tInstrument: {self.INSTRUMENT_NAME},\tMeas num: {self.MEAS_NUM},\tWait time: {self.WAIT_TIME}\n"
+        additional_info = f"Start time: {start_time},\tInstrument: {self.INSTRUMENT_NAME},\tMeas num: {self.MEAS_NUM},\tWait time: {self.WAIT_TIME},\tTolerance: {self.TOLERANCE}\n"
 
         # Read the file
         input_lines = self.input_file.readlines()
@@ -166,7 +166,7 @@ class fileFunc:
 
         # For each channel new column
         for c in range(1, self.CHANNEL_NUM+2):
-            heading[-1] += "\tT{} (°C)".format(c)
+            heading[-1] += f"\tT{c} (°C)"
 
         heading[-1] += "\n"
 

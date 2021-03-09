@@ -158,6 +158,14 @@ class fileFunc:
         start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
         additional_info = f"Start time: {start_time},\tInstrument: {self.INSTRUMENT_NAME},\tMeas num: {self.MEAS_NUM},\tWait time: {self.WAIT_TIME},\tTolerance: {self.TOLERANCE}\n"
 
+        print(f"[INFO] Waiting for heading.")
+
+        while True:
+            time.sleep(1.0)
+            temp = self.input_file.readlines()
+            if len(temp) >= heading_lines:
+                break
+
         # Read the file
         input_lines = self.input_file.readlines()
         heading = input_lines[0:heading_lines]  # It is defined as first 8 rows

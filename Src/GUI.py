@@ -43,7 +43,7 @@ class measUI():
     pady = 3
     
     # Color definitions
-    dark_mode = False
+    dark_mode = True
     if dark_mode == False:
         color_bg =  "#F0F0F0"
         color_bg_s = "#F0F0FF"
@@ -614,8 +614,8 @@ class measUI():
         try:
             for element in meas:
                 # What is the expected temperature?
-                if element >= 200 or element <= -1:
-                    raise ValueError("[WARN] Some channels may not be configured correctly")
+                if element >= 200 or element <= -100:
+                    raise ValueError("[WARN] Some channels may not be configured correctly.")
         finally:
             self.KeyDAQ_test.close_session()
 

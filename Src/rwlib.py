@@ -156,7 +156,8 @@ class fileFunc:
 
         # Additional info
         start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-        additional_info = f"Start time: {start_time},\tInstrument: {self.INSTRUMENT_NAME},\tMeas num: {self.MEAS_NUM},\tWait time: {self.WAIT_TIME},\tTolerance: {self.TOLERANCE}\n"
+        additional_info = f"Start time: {start_time},\tInstrument: {self.INSTRUMENT_NAME}, Address: {self.INSTRUMENT_ADDRESS}\n"
+        additional_info_1 = f"Meas num: {self.MEAS_NUM},\tWait time: {self.WAIT_TIME} [s],\tTolerance: {self.TOLERANCE} [°C]\n"
 
         print(f"[INFO] Waiting for heading.")
 
@@ -177,12 +178,14 @@ class fileFunc:
         for c in range(1, self.CHANNEL_NUM+2):
             heading[-1] += f"\tT{c} (°C)"
 
-        heading[-1] += "\n"
+        heading[-1] += "\n"  # Add line break at the end of last line
 
         # Write the heading
         self.output_file.writelines(additional_info)
+        self.output_file.writelines(additional_info_1)
         self.output_file.writelines(heading)
-        self.last_line = heading[-1]  # Save the last heading line as last line
+        self.last_line = self.read_last_line()  # Save the last (heading) line as last line
+        # or the last measurement in the past
 
     def read_last_line(self):
         """ Reads the last line of the file.

@@ -85,7 +85,7 @@ class KeyDAQ():
                 self.inst = self.rm.open_resource(resource,
                                             read_termination = "\n", 
                                             write_termination = "\n")
-                self.inst.timeout = 120000 # [ms]
+                self.inst.timeout = 100000 # [ms]
                 print("[INFO] Instrument initialized")
             except pyvisa.errors.VisaIOError:
                 print(f"[ERROR] Insufficient location information or the requested device or resource is not present in the system.")

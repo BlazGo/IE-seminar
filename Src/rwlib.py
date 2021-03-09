@@ -160,15 +160,16 @@ class fileFunc:
 
         print(f"[INFO] Waiting for heading.")
 
-        while True:
-            time.sleep(1.0)
-            temp = self.input_file.readlines()
-            if len(temp) >= heading_lines:
-                break
+        csum = 0
+        while csum < heading_lines:
+            time.sleep(0.5)
+            temp = self.input_file.readlines() # Reading lines "consumes" them next read will be from the last read line
+            csum = csum + len(temp)
+        print(f"[INFO] Heading reached 8 lines. Continuing.")
 
         # Read the file
-        input_lines = self.input_file.readlines()
-        heading = input_lines[0:heading_lines]  # It is defined as first 8 rows
+        self.input_file.seek(0)  # File pointer reset to beginning
+        heading = self.input_file.readlines()[0:heading_lines]  # It is defined as first 8 rows
         # Remove new line from last line
         heading[-1] = heading[-1].rstrip("\n")
 

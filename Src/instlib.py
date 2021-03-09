@@ -63,7 +63,7 @@ class KeyDAQ():
         self.SIMULATION = simulation
         # self.inst.query_delay = 0.0 # Doesnt do much 0.0 default
         # lowest it can go ~140ms for 10 channels
-        time.sleep(0.5)
+        time.sleep(0.25)
 
     def init_inst(self, resource="USB0::0x2A8D::0x5001::MY58004219::0::INSTR"):
         """ Initializes the session with the instrument

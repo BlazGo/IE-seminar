@@ -77,6 +77,7 @@ class fileFunc:
         file_setup = config["FILE_SETUP"]
         instrument_setup = config["INSTRUMENT_SETUP"]
         measurement_setup = config["MEASUREMENT_SETUP"]
+        async_meas_setup = config["ASYNC_MEAS_SETUP"]
 
         # Retrieve all the (needed) variables
         self.INPUT_DIR_PATH = file_setup.get("input_dir_path")
@@ -97,7 +98,13 @@ class fileFunc:
         self.MEAS_NUM = int(measurement_setup.get("meas_num"))
         self.WAIT_TIME = float(measurement_setup.get("wait_time"))
         self.TOLERANCE = float(measurement_setup.get("tolerance"))
-        self.ASYNC_TEMP = bool(measurement_setup.get("async_temp"))
+        self.SIMULATION = int(measurement_setup.get("simulation"))
+
+        self.ASYNC_MEAS = int(async_meas_setup.get("async_meas"))
+        self.ASYNC_MEAS_INTERVAL = float(async_meas_setup.get("async_meas_interval"))
+        self.ASYNC_MEAS_FILENAME = async_meas_setup.get("async_meas_filename")
+        self.ASYNC_MEAS_DIR_PATH = async_meas_setup.get("async_meas_dir_path")
+        self.ASYNC_MEAS_FILEPATH = os.path.join(self.ASYNC_MEAS_DIR_PATH, self.ASYNC_MEAS_FILENAME)
 
     def wait_file(self, filepath, filename=""):
         """ Waits for specified file to be created.
@@ -177,7 +184,7 @@ class fileFunc:
         heading[-1] = heading[-1].rstrip("\n")
 
         # For each channel new column
-        for c in range(1, self.CHANNEL_NUM+2):
+        for c in range(1, self.CHANNEL_NUM+1):
             heading[-1] += f"\tT{c} (°C)"
 
         heading[-1] += "\n"  # Add line break at the end of last line
@@ -227,22 +234,22 @@ class fileFunc:
             self.last_line = line
             return True
 
-    def write_new_line(self, original_line="", temperatures=-1):
+    def write_new_line(self, original_line="", measurements=-1):
         """ Writes new line into the output file. Joins old line and
-        formats the temperatures.
+        formats the measurements.
 
         Parameters:
         ----------
         original_line : string
             In our case we input the last line read.
-        temperatures : list
+        measurements : list
             List containing numbers (floats).
         
         """
 
         temp_string = ""
-        for num in temperatures:
-            temp_string += "\t" + str(round(num, 3))
+        for num in measurements:
+            temp_string += "\t" + str(round(num, 2))
 
         # Remove newline from old line, add temp and new line
         string_to_write = original_line.strip("\n") + temp_string + "\n"
@@ -263,7 +270,32 @@ class fileFunc:
         self.input_file.close()
         self.output_file.close()
 
-    
+    def write_async_line(self, wfile, measurements):
+        """ Writes line into the output file.
+
+        Formats time and measurements.
+
+        Parameters:
+        ----------
+        wfile : file
+            File in which to write
+        measurements : list
+            List containing numbers (floats).
+        
+        """
+
+        temp_string = ""
+        for num in measurements:
+            temp_string += "\t" + str(round(num, 2))
+
+        # Remove newline from old line, add temp and new line
+        timestamp = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        string_to_write = str(timestamp) + temp_string + "\n"
+
+        wfile.write(string_to_write)
+        # Flush the buffer so it immediately writes the line
+        wfile.flush()
+
 
 if __name__ == "__main__":
 

@@ -64,20 +64,21 @@ class measUI():
     font_M = ('Leelawadee UI', 12)
     font_I = ('Consolas', 10)
 
-    def __init__(self, simulation=False):
+    def __init__(self, simulation=None):
         """ Main window
 
         """
-        # Simple simulation not implemented
-        # Best solution to replace instrument calls with
-        # random number generator manually
-        self.SIM = simulation
 
         # Initiate class for files
         self.rwfunc = fileFunc()
         # Read config file and set parameters
         self.rwfunc.read_config()
 
+        if simulation != None:
+            self.SIM = simulation
+        elif simulation == None:
+            self.SIM = self.rwfunc.SIMULATION
+                
         # Main window
         self.main_window()
         # Start the clock
@@ -377,8 +378,10 @@ class measUI():
         Start the main program thread.
         
         """
-
-        self.main_loopTHREAD = threading.Thread(target=self.main_loop, daemon=True)
+        if self.rwfunc.ASYNC_MEAS == True:
+            self.main_loopTHREAD = threading.Thread(target=self.main_loop_async, daemon=True)
+        else:
+            self.main_loopTHREAD = threading.Thread(target=self.main_loop, daemon=True)
         self.main_loopTHREAD.start()
 
     def main_loop(self):
@@ -448,16 +451,6 @@ class measUI():
                 if int(float(self.txt_console.index("end"))) >= 30:
                     self.txt_console.delete(1.0, tk.END)
 
-                """
-                if time.time() - timeout_timer >= self.TIMEOUT_MAX:
-                    message = f"[INFO] {curr_time()}: Reached timeout time.\n"
-                    print(message)
-                    self.txt_console.insert(tk.INSERT, message)
-                    # If timeout is reached exit the main loop
-                    break
-                """
-
-
                 # If there is a new line execute measurement
                 if self.rwfunc.check_newline() == True:
                     start = time.time()
@@ -484,6 +477,134 @@ class measUI():
                 # If there is no new line wait a bit and start the timeout timer
                 elif self.rwfunc.check_newline() == False:
                     time.sleep(self.rwfunc.WAIT_TIME)
+
+            except Exception as e:
+                # If there was an error in main loop it was programming mistake.
+                # This is probably useless.
+                self.btn_start.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
+                message = f"[ERROR] Error occured turing main loop. Retrying...\n Error {e}"
+                print(message)
+                self.txt_console.insert(tk.INSERT, message + "\n")
+                time.sleep(self.rwfunc.WAIT_TIME/2)
+
+                try:
+                    error = self.KeyDAQ.read_error()
+                    print(error)
+                    self.txt_console.insert(tk.INSERT, error + "\n")
+                except Exception as e:
+                    print(e)
+                    pass              
+                # Maybe put here .after() to restart the main loop
+                # probably only while loop?
+                raise
+
+    def main_loop_async(self):
+        """ Main program
+        Initialize instrument, copy heading remove buttons.
+        Main loop checks for new line, executes measurements and writes to new file.
+
+        Same as original main loop with asynchronus measurements. The measurement is executed at
+        consistent intervals invariable to measurements of original system. The last known measurement
+        is written when a new line is detected. Additionaly an extra file is created with only
+        meausrements and timestamps.
+        
+        """
+
+        self.KeyDAQ = KeyDAQ(meas_num=self.rwfunc.MEAS_NUM,
+                                channels_start=self.rwfunc.CHANNELS_START,
+                                channels_end=self.rwfunc.CHANNELS_END,
+                                tolerance=self.rwfunc.TOLERANCE,
+                                simulation=self.SIM)
+
+        try:
+            self.KeyDAQ.init_inst(resource=self.rwfunc.INSTRUMENT_ADDRESS)
+        except errors.VisaIOError:
+            message = f"[ERROR] Instrument may not be present. Cannot continue."
+            print(message)  
+            self.txt_console.insert(tk.INSERT, message + "\n")
+            raise
+
+        message = f"[INFO] Instrument initialized."
+        print(message)  
+        self.txt_console.insert(tk.INSERT, message + "\n")
+        
+        message = f"[INFO] Waiting for file."
+        print(message)  
+        self.txt_console.insert(tk.INSERT, message + "\n")
+
+        try:
+            self.rwfunc.create_file(self.rwfunc.INPUT_FILE_PATH,
+                                self.rwfunc.INPUT_FILENAME,
+                                self.rwfunc.OUTPUT_FILE_PATH,
+                                self.rwfunc.OUTPUT_FILENAME)
+        except FileExistsError:
+            message = f"[ERROR] Files already exists. Change the name of the output file."
+            print(message)
+            self.txt_console.insert(tk.INSERT, message + "\n")
+            raise
+
+        message = f"[INFO] Files created."
+        print(message)
+        self.txt_console.insert(tk.INSERT, message + "\n")
+
+        self.rwfunc.write_heading()
+
+        message = f"[INFO] Heading written."
+        print(message)
+        self.txt_console.insert(tk.INSERT, message + "\n")
+        
+        self.meas_file = open(self.rwfunc.ASYNC_MEAS_FILEPATH, "x")
+
+        head = "Time"
+        for c in range(1, self.rwfunc.CHANNEL_NUM+1):
+            head = head + f"\tT{c} (°C)"
+        self.meas_file.writelines(head + "\n")
+        print(f"[INFO] Async file created.")
+
+        # Remove the unnecessary buttons just in case
+        self.btn_setup.grid_remove()
+        self.btn_inst_scan.grid_remove()
+        self.btn_check_inst.grid_remove()
+        self.btn_start.grid_remove()
+
+        message = f"[INFO] {curr_time()}: Started program."
+        print(message)
+        self.txt_console.insert(tk.INSERT, message + "\n")
+
+        last_meas = time.time()
+        while True:
+            try:
+                loop_time = time.time()
+                if int(float(self.txt_console.index("end"))) >= 30:
+                    self.txt_console.delete(1.0, tk.END)
+
+                newline_status = self.rwfunc.check_newline()
+                if  newline_status == True:
+                    measurements = self.KeyDAQ.get_measurements()
+                    self.rwfunc.write_new_line(self.rwfunc.last_line, measurements)
+                    self.rwfunc.write_async_line(self.meas_file, measurements)
+
+                    measurements = [round(num, 1) for num in measurements]
+                    message = f"[INFO] {curr_time()}: Line {self.rwfunc.line_num} written. Temp: {measurements}"
+                    print(message)
+                    self.txt_console.insert(tk.INSERT, message + "\n")
+
+                    last_meas = time.time()
+
+                time_since_last = (time.time() - last_meas)  # Seconds since last line
+                if time_since_last >= self.rwfunc.ASYNC_MEAS_INTERVAL:
+                    # Asynchronous measurement
+                    measurements = self.KeyDAQ.get_measurements()
+                    self.rwfunc.write_async_line(self.meas_file, measurements)
+                    measurements = [round(num, 1) for num in measurements]
+                    print(f"[INFO] {curr_time()} Asynchronous measurement taken. Temp: {measurements}")
+                    last_meas = time.time()
+
+                print(time_since_last)
+                time_remaining = self.rwfunc.WAIT_TIME - (time.time() - loop_time)
+                if time_remaining <= 0 or time_remaining >= self.rwfunc.WAIT_TIME: # Just in case
+                    time_remaining = self.rwfunc.WAIT_TIME
+                time.sleep(time_remaining)
 
             except Exception as e:
                 # If there was an error in main loop it was programming mistake.
@@ -642,7 +763,7 @@ class measUI():
 
 if __name__ == "__main__":
 
-    measUI = measUI(simulation=False)
+    measUI = measUI(simulation=True)
 
     print("\n*---------------------------------------------------------------------*")
     print("Parameters:")

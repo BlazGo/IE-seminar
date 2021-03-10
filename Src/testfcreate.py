@@ -76,7 +76,10 @@ class file_create:
         print("Entered main loop...")
         i = 1
         for i in range(8, len(self.original_lines)):
-            time.sleep(5)
+            if i >20 and i < 30:
+                time.sleep(200)
+            else:
+                time.sleep(5)
             self.new_file.write(self.original_lines[i])  # write i-th line
             self.new_file.flush()  # refresh file? update
 

@@ -95,7 +95,7 @@ class fileFunc:
         self.INPUT_FILE_PATH = os.path.join(self.INPUT_DIR_PATH, self.INPUT_FILENAME)
         self.OUTPUT_FILE_PATH = os.path.join(self.OUTPUT_DIR_PATH, self.OUTPUT_FILENAME)
 
-        self.CHANNEL_NUM = self.CHANNELS_END - self.CHANNELS_START
+        self.CHANNEL_NUM = self.CHANNELS_END - self.CHANNELS_START + 1
 
     def wait_file(self, filepath, filename=""):
         """ Waits for specified file to be created.
@@ -141,7 +141,7 @@ class fileFunc:
         self.input_file = open(ifilepath, 'r')
         print(f"[INFO] File: {ofilename} created.")
  
-    def write_heading(self, heading_lines=9):
+    def write_heading(self, heading_lines=8):
         """ Writes the heading. Copies the first N lines,
         adds additional parameters as the first line, adds
         another tab/column at the last line and writes
@@ -156,23 +156,51 @@ class fileFunc:
 
         # Additional info
         start_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-        additional_info = f"Start time: {start_time},\tInstrument: {self.INSTRUMENT_NAME},\tMeas num: {self.MEAS_NUM},\tWait time: {self.WAIT_TIME}\n"
+        additional_info = f"Start time: {start_time},\tInstrument: {self.INSTRUMENT_NAME}, Address: {self.INSTRUMENT_ADDRESS}\n"
+        additional_info_1 = f"Meas num: {self.MEAS_NUM},\tWait time: {self.WAIT_TIME} [s],\tTolerance: {self.TOLERANCE} [°C]\n"
+
+        print(f"[INFO] Waiting for heading.")
+
+        csum = 0
+        while csum < heading_lines:
+            time.sleep(0.5)
+            temp = self.input_file.readlines() # Reading lines "consumes" them next read will be from the last read line
+            csum = csum + len(temp)
+        print(f"[INFO] Heading reached 8 lines. Continuing.")
 
         # Read the file
-        input_lines = self.input_file.readlines()
-        heading = input_lines[0:heading_lines]  # It is defined as first 8 rows
+        self.input_file.seek(0)  # File pointer reset to beginning
+        heading = self.input_file.readlines()[0:heading_lines]  # It is defined as first 8 rows
         # Remove new line from last line
         heading[-1] = heading[-1].rstrip("\n")
 
         # For each channel new column
         for c in range(1, self.CHANNEL_NUM+2):
-            heading[-1] += "\tT{} (°C)".format(c)
+            heading[-1] += f"\tT{c} (°C)"
 
-        heading[-1] += "\n"
+        heading[-1] += "\n"  # Add line break at the end of last line
 
         # Write the heading
         self.output_file.writelines(additional_info)
+        self.output_file.writelines(additional_info_1)
         self.output_file.writelines(heading)
+        self.last_line = self.read_last_line()  # Save the last (heading) line as last line
+        # or the last measurement in the past
+
+    def read_last_line(self):
+        """ Reads the last line of the file.
+
+        Returns:
+        ----------
+        line : str
+        
+        """
+        line = None  # Referenced before assignment error
+        # reads last line in file
+        # Faster than file.readlines()[-1]
+        for line in self.input_file:
+            pass
+        return line
 
     def check_newline(self):
         """ Checks the last line of the file. If a change
@@ -185,15 +213,11 @@ class fileFunc:
             change in last line returns False
         
         """
+        
+        line = self.read_last_line()
 
-        line = None  # Referenced before assignment error
-        # reads last line in file
-        # Faster than file.readlines()[-1]
-        for line in self.input_file:
-            pass
         if line == None:
             return False
-
         if line == self.last_line:
             return False
         elif line != self.last_line:
@@ -222,7 +246,7 @@ class fileFunc:
         string_to_write = original_line.strip("\n") + temp_string + "\n"
 
         self.output_file.write(string_to_write)
-        # Flush the buffer so it immediatelly writes the line
+        # Flush the buffer so it immediately writes the line
         self.output_file.flush()
 
         # Keep track of written lines

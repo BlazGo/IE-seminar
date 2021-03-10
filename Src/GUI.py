@@ -43,7 +43,7 @@ class measUI():
     pady = 3
     
     # Color definitions
-    dark_mode = False
+    dark_mode = True
     if dark_mode == False:
         color_bg =  "#F0F0F0"
         color_bg_s = "#F0F0FF"
@@ -64,7 +64,7 @@ class measUI():
     font_M = ('Leelawadee UI', 12)
     font_I = ('Consolas', 10)
 
-    def __init__(self, master, simulation=False):
+    def __init__(self, simulation=False):
         """ Main window
 
         """
@@ -78,8 +78,16 @@ class measUI():
         # Read config file and set parameters
         self.rwfunc.read_config()
 
+        # Main window
+        self.main_window()
+        # Start the clock
+        self.update_time()
+        # Start the main thread
+        self.root.mainloop()
+
+    def main_window(self):
         # Define UI basics
-        self.root = master
+        self.root = tk.Tk()
         self.root.title("Merjenje temperature")
         #self.root.minsize(500, 400)
         # self.root.geometry("750x360")
@@ -161,7 +169,6 @@ class measUI():
         self.btn_start.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
         self.btn_check_inst.grid(row=7, column=2, sticky="ew", padx=self.padx, pady=self.pady)
         self.btn_inst_scan.grid(row=7, column=3, sticky="ew", padx=self.padx, pady=self.pady)
-
 
         self.txt_console.grid(row=1, column=2, sticky="news", padx=self.padx, pady=self.pady, rowspan=11)
 
@@ -450,12 +457,14 @@ class measUI():
                     break
                 """
 
-                start = time.time()
 
                 # If there is a new line execute measurement
                 if self.rwfunc.check_newline() == True:
+                    start = time.time()
+
                     # measurement
                     measurements = self.KeyDAQ.get_measurements()
+                    
                     # write line
                     self.rwfunc.write_new_line(self.rwfunc.last_line, measurements)
 
@@ -464,17 +473,13 @@ class measUI():
                     print(message)
                     self.txt_console.insert(tk.INSERT, message + "\n")
 
-                    # reset the timeout timer
-                    # timeout_timer = time.time()
                     meas_time = (time.time() - start)*1e-3 # Get seconds
                     time_remaining = self.rwfunc.WAIT_TIME - meas_time
 
-                    if time_remaining <= 0:
-                        time_remaining = 0
-                    if time_remaining > self.rwfunc.WAIT_TIME:
-                        time_remaining = self.rwfunc.WAIT_TIME
-
-                    time.sleep(time_remaining)
+                    if time_remaining > 0 and time_remaining <= self.rwfunc.WAIT_TIME:
+                        time.sleep(time_remaining)
+                    else:
+                        time.sleep(0.5)
 
                 # If there is no new line wait a bit and start the timeout timer
                 elif self.rwfunc.check_newline() == False:
@@ -609,8 +614,8 @@ class measUI():
         try:
             for element in meas:
                 # What is the expected temperature?
-                if element >= 200 or element <= -1:
-                    raise ValueError("[WARN] Some channels may not be configured correctly")
+                if element >= 200 or element <= -100:
+                    raise ValueError("[WARN] Some channels may not be configured correctly.")
         finally:
             self.KeyDAQ_test.close_session()
 
@@ -636,14 +641,8 @@ class measUI():
             pass
 
 if __name__ == "__main__":
-    
-    root = tk.Tk()
-    measUI = measUI(root, simulation=False)
-    
-    # Start clock update
-    measUI.update_time()
-    # Start main UI loop
-    root.mainloop()
+
+    measUI = measUI(simulation=False)
 
     print("\n*---------------------------------------------------------------------*")
     print("Parameters:")

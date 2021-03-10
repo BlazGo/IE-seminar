@@ -52,7 +52,7 @@ class KeyDAQ():
         self.MEAS_NUM = meas_num
         self.CHANNELS_START = channels_start
         self.CHANNELS_END = channels_end
-        self.CHANNELS_NUM = channels_end - channels_start +1
+        self.CHANNELS_NUM = channels_end - channels_start + 1
         
         self.channels = f"{self.CHANNELS_START}:{self.CHANNELS_END}"
         if self.CHANNELS_START == self.CHANNELS_END:
@@ -63,7 +63,7 @@ class KeyDAQ():
         self.SIMULATION = simulation
         # self.inst.query_delay = 0.0 # Doesnt do much 0.0 default
         # lowest it can go ~140ms for 10 channels
-        time.sleep(0.5)
+        time.sleep(0.25)
 
     def init_inst(self, resource="USB0::0x2A8D::0x5001::MY58004219::0::INSTR"):
         """ Initializes the session with the instrument
@@ -85,7 +85,7 @@ class KeyDAQ():
                 self.inst = self.rm.open_resource(resource,
                                             read_termination = "\n", 
                                             write_termination = "\n")
-                self.inst.timeout = 120000 # [ms]
+                self.inst.timeout = 100000 # [ms]
                 print("[INFO] Instrument initialized")
             except pyvisa.errors.VisaIOError:
                 print(f"[ERROR] Insufficient location information or the requested device or resource is not present in the system.")
@@ -152,32 +152,15 @@ class KeyDAQ():
         """
 
         if self.SIMULATION == True:
-            sim_meas = np.random.uniform(low=18.0, high=22.0, size=(self.MEAS_NUM, self.CHANNELS_NUM))
-            """
-            meas = np.around(sim_meas[:,0], 1)
-            print(meas)
-            median = np.median(meas)
-            print(median)
-            meas = np.where(1<abs(meas-median), meas, 0)
-            meas = np.ma.masked_equal(meas,0)
-            print(meas)
-            meas = np.mean(meas)
-            print(meas)
-            """
-            return sim_meas
-
-        Tcouple = "J"
-        resolution = "0.01"
-        
-        command = f"MEASure:TEMPerature:TCouple? {Tcouple},{resolution},(@{self.channels})"
-               
-        meas_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
-
-        for meas_iteration in range(0, self.MEAS_NUM):
-            temp_raw = self.inst.query_ascii_values(command)
-            for i in range(0, len(temp_raw)):
-                meas_array[meas_iteration, i] = temp_raw[i]
-
+            return np.random.uniform(low=18.0, high=22.0, size=(self.MEAS_NUM, self.CHANNELS_NUM))
+        elif self.SIMULATION == False:
+            Tcouple = "J"
+            resolution = "0.01"
+            command = f"MEASure:TEMPerature:TCouple? {Tcouple},{resolution},(@{self.channels})"
+                
+            meas_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
+            for meas_iteration in range(0, self.MEAS_NUM):
+                meas_array[meas_iteration, :] = self.inst.query_ascii_values(command)
         return meas_array
 
     def process_measurements(self, measurements):
@@ -186,9 +169,8 @@ class KeyDAQ():
 
         Parameters:
         ----------
-        measurements : list of lists
-            Embedded lists 1xCHANNEL_NUM measurements. Len of 
-            parent list is based on MEAS_NUM.
+        measurements : array or list
+            dimensions MEAS_NUMxCHANNEL_NUM measurements.
 
         Returns:
         ----------
@@ -312,6 +294,7 @@ if __name__ == "__main__":
         print(measurements)
 
         inst.close_session()
+        print("Test passed.")
 
     except KeyboardInterrupt as e:
         print(f"Keyboard interrupt {e}")

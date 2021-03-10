@@ -152,28 +152,14 @@ class KeyDAQ():
         """
 
         if self.SIMULATION == True:
-            sim_meas = np.random.uniform(low=18.0, high=22.0, size=(self.MEAS_NUM, self.CHANNELS_NUM))
-            """
-            meas = np.around(sim_meas[:,0], 1)
-            print(meas)
-            median = np.median(meas)
-            print(median)
-            meas = np.where(1<abs(meas-median), meas, 0)
-            meas = np.ma.masked_equal(meas,0)
-            print(meas)
-            meas = np.mean(meas)
-            print(meas)
-            """
-            return sim_meas
-
-        Tcouple = "J"
-        resolution = "0.01"
-        
-        command = f"MEASure:TEMPerature:TCouple? {Tcouple},{resolution},(@{self.channels})"
-               
-        meas_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
-
-        for meas_iteration in range(0, self.MEAS_NUM):
+            return np.random.uniform(low=18.0, high=22.0, size=(self.MEAS_NUM, self.CHANNELS_NUM))
+        elif self.SIMULATION == False:
+            Tcouple = "J"
+            resolution = "0.01"
+            command = f"MEASure:TEMPerature:TCouple? {Tcouple},{resolution},(@{self.channels})"
+                
+            meas_array = np.zeros((self.MEAS_NUM, self.CHANNELS_NUM))
+            for meas_iteration in range(0, self.MEAS_NUM):
                 meas_array[meas_iteration, :] = self.inst.query_ascii_values(command)
         return meas_array
 

@@ -76,6 +76,7 @@ class fileFunc:
         # Define the keys of config file
         file_setup = config["FILE_SETUP"]
         instrument_setup = config["INSTRUMENT_SETUP"]
+        measurement_setup = config["MEASUREMENT_SETUP"]
 
         # Retrieve all the (needed) variables
         self.INPUT_DIR_PATH = file_setup.get("input_dir_path")
@@ -83,19 +84,20 @@ class fileFunc:
         self.OUTPUT_DIR_PATH = file_setup.get("output_dir_path")
         self.OUTPUT_FILENAME = file_setup.get("output_filename")
 
-        self.INSTRUMENT_NAME = instrument_setup.get("instrument")
-        self.INSTRUMENT_ADDRESS = instrument_setup.get("instrument_address")
-        self.MEAS_NUM = int(instrument_setup.get("meas_num"))
-        self.WAIT_TIME = float(instrument_setup.get("wait_time"))
-        self.CHANNELS_START = int(instrument_setup.get("channels_start"))
-        self.CHANNELS_END = int(instrument_setup.get("channels_end"))
-        self.TOLERANCE = float(instrument_setup.get("tolerance"))
-
         # For convenience join the dir path and filename
         self.INPUT_FILE_PATH = os.path.join(self.INPUT_DIR_PATH, self.INPUT_FILENAME)
         self.OUTPUT_FILE_PATH = os.path.join(self.OUTPUT_DIR_PATH, self.OUTPUT_FILENAME)
 
+        self.INSTRUMENT_NAME = instrument_setup.get("instrument")
+        self.INSTRUMENT_ADDRESS = instrument_setup.get("instrument_address")
+        self.CHANNELS_START = int(instrument_setup.get("channels_start"))
+        self.CHANNELS_END = int(instrument_setup.get("channels_end"))
         self.CHANNEL_NUM = self.CHANNELS_END - self.CHANNELS_START + 1
+
+        self.MEAS_NUM = int(measurement_setup.get("meas_num"))
+        self.WAIT_TIME = float(measurement_setup.get("wait_time"))
+        self.TOLERANCE = float(measurement_setup.get("tolerance"))
+        self.ASYNC_TEMP = bool(measurement_setup.get("async_temp"))
 
     def wait_file(self, filepath, filename=""):
         """ Waits for specified file to be created.
@@ -261,6 +263,7 @@ class fileFunc:
         self.input_file.close()
         self.output_file.close()
 
+    
 
 if __name__ == "__main__":
 

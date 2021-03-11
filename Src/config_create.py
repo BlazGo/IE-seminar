@@ -37,8 +37,7 @@ config["MEASUREMENT_SETUP"] = { "Meas_num"      : "9",
 
 config["ASYNC_MEAS_SETUP"] = {  "Async_meas"            : "1",
                                 "Async_meas_interval"   : "30",
-                                "Async_meas_dir_path"   : str(script_path),
-                                "Async_meas_filename"   : "async_meas.txt"
+                                "Async_meas_filename"   : "async_meas"
                             }
 
 config["DEFAULT"] = {   "Input_dir_path"        : "C:/measurements",
@@ -48,14 +47,14 @@ config["DEFAULT"] = {   "Input_dir_path"        : "C:/measurements",
                         "Instrument"            : "Keysight DAQ970A",
                         "Instrument_address"    : "USB0::0x2A8D::0x5001::MY58004219::0::INSTR",
                         "Thermocouple_type"     : "J",
-                        "Meas_num"              : "11",
-                        "Wait_time"             : "1",
                         "Channels_start"        : "101",
                         "Channels_end"          : "105",
+                        "Meas_num"              : "11",
+                        "Wait_time"             : "1",
+                        "Simulation"            : "0",
                         "Async_temp"            : "True",
                         "Async_interval"        : "300",
-                        "Async_meas_dir_path"   : "C:/measurements/modify",
-                        "Async_meas_filename"   : "async_meas.txt"
+                        "Async_meas_filename"   : "async_meas"
                         }
 
 with open(filename, "w") as configfile:

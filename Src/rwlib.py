@@ -103,8 +103,11 @@ class fileFunc:
         self.ASYNC_MEAS = int(async_meas_setup.get("async_meas"))
         self.ASYNC_MEAS_INTERVAL = float(async_meas_setup.get("async_meas_interval"))
         self.ASYNC_MEAS_FILENAME = async_meas_setup.get("async_meas_filename")
-        self.ASYNC_MEAS_DIR_PATH = async_meas_setup.get("async_meas_dir_path")
-        self.ASYNC_MEAS_FILEPATH = os.path.join(self.ASYNC_MEAS_DIR_PATH, self.ASYNC_MEAS_FILENAME)
+        
+        og_file = os.path.splitext(self.OUTPUT_FILENAME)
+        async_meas_file = og_file[0] + "_" +self.ASYNC_MEAS_FILENAME + og_file[-1]
+        print(async_meas_file)
+        self.ASYNC_MEAS_FILEPATH = os.path.join(self.OUTPUT_DIR_PATH, async_meas_file)
 
     def wait_file(self, filepath, filename=""):
         """ Waits for specified file to be created.

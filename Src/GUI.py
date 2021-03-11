@@ -29,6 +29,20 @@ def curr_time():
 
     return datetime.now().strftime("%H:%M:%S %d/%m/%Y")
 
+def print_both(widget, message=f"[INFO] {curr_time()}"):
+    """ Prints the message in console and widget (text widget)
+
+    Parameters:
+    ----------
+    widget : tkinter widget
+        Intended as a text widget
+    message : str
+        Message to be printed out
+        
+    """
+
+    print(message)  
+    widget.insert(tk.INSERT, message + "\n")
 
 class measUI():
     """
@@ -312,7 +326,7 @@ class measUI():
 
         # Close the subwindow
         self.subwin.destroy()
-        self.txt_console.insert(tk.INSERT, f"[INFO] New parameters saved.\n")
+        print_both(self.txt_console, f"[INFO] New parameters saved.\n")
 
     def reset_to_default(self):
         """ Button function resets parameters to default values.
@@ -343,6 +357,8 @@ class measUI():
         self.spi_ch_start.insert(0, self.rwfunc.CHANNELS_START)
         self.spi_ch_end.insert(0, self.rwfunc.CHANNELS_END)
         self.spi_wtime.insert(0, self.rwfunc.WAIT_TIME)
+
+        print_both(self.txt_console, "[INFO] Parameters reset")
 
     def abort(self):
         """ Closes the program
@@ -400,18 +416,11 @@ class measUI():
         try:
             self.KeyDAQ.init_inst(resource=self.rwfunc.INSTRUMENT_ADDRESS)
         except errors.VisaIOError:
-            message = f"[ERROR] Instrument may not be present. Cannot continue."
-            print(message)  
-            self.txt_console.insert(tk.INSERT, message + "\n")
+            print_both(self.txt_console, f"[ERROR] Instrument may not be present. Cannot continue.")
             raise
 
-        message = f"[INFO] Instrument initialized."
-        print(message)  
-        self.txt_console.insert(tk.INSERT, message + "\n")
-        
-        message = f"[INFO] Waiting for file."
-        print(message)  
-        self.txt_console.insert(tk.INSERT, message + "\n")
+        print_both(self.txt_console, f"[INFO] Instrument initialized.")
+        print_both(self.txt_console, f"[INFO] Waiting for file.")
 
         try:
             self.rwfunc.create_file(self.rwfunc.INPUT_FILE_PATH,
@@ -419,20 +428,12 @@ class measUI():
                                 self.rwfunc.OUTPUT_FILE_PATH,
                                 self.rwfunc.OUTPUT_FILENAME)
         except FileExistsError:
-            message = f"[ERROR] Files already exists. Change the name of the output file."
-            print(message)
-            self.txt_console.insert(tk.INSERT, message + "\n")
+            print_both(self.txt_console, f"[ERROR] Files already exists. Change the name of the output file.")
             raise
 
-        message = f"[INFO] Files created."
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
-
+        print_both(self.txt_console, f"[INFO] Files created.")
         self.rwfunc.write_heading()
-
-        message = f"[INFO] Heading written."
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
+        print_both(self.txt_console, f"[INFO] Heading written.")
 
         # Remove the unnecessary buttons just in case
         self.btn_setup.grid_remove()
@@ -440,11 +441,8 @@ class measUI():
         self.btn_check_inst.grid_remove()
         self.btn_start.grid_remove()
 
-        message = f"[INFO] {curr_time()}: Started program."
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
+        print_both(self.txt_console, f"[INFO] {curr_time()}: Started program.")
 
-        #timeout_timer = time.time()
         while True:
             try:
                 # Check if UI console is longer than specified
@@ -462,9 +460,7 @@ class measUI():
                     self.rwfunc.write_new_line(self.rwfunc.last_line, measurements)
 
                     measurements = [round(num, 1) for num in measurements]
-                    message = f"[INFO] {curr_time()}: Line {self.rwfunc.line_num} written. Temp: {measurements}"
-                    print(message)
-                    self.txt_console.insert(tk.INSERT, message + "\n")
+                    print_both(self.txt_console, f"[INFO] {curr_time()}: Line {self.rwfunc.line_num} written. Temp: {measurements}")
 
                     meas_time = (time.time() - start)*1e-3 # Get seconds
                     time_remaining = self.rwfunc.WAIT_TIME - meas_time
@@ -482,17 +478,13 @@ class measUI():
                 # If there was an error in main loop it was programming mistake.
                 # This is probably useless.
                 self.btn_start.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
-                message = f"[ERROR] Error occured turing main loop. Retrying...\n Error {e}"
-                print(message)
-                self.txt_console.insert(tk.INSERT, message + "\n")
+                print_both(self.txt_console, f"[ERROR] Error occured turing main loop. Retrying...\n Error {e}")
                 time.sleep(self.rwfunc.WAIT_TIME/2)
 
                 try:
-                    error = self.KeyDAQ.read_error()
-                    print(error)
-                    self.txt_console.insert(tk.INSERT, error + "\n")
+                    print_both(self.txt_console, self.KeyDAQ.read_error())
                 except Exception as e:
-                    print(e)
+                    print_both(self.txt_console, e)
                     pass              
                 # Maybe put here .after() to restart the main loop
                 # probably only while loop?
@@ -503,10 +495,11 @@ class measUI():
         Initialize instrument, copy heading remove buttons.
         Main loop checks for new line, executes measurements and writes to new file.
 
-        Same as original main loop with asynchronus measurements. The measurement is executed at
-        consistent intervals invariable to measurements of original system. The last known measurement
-        is written when a new line is detected. Additionaly an extra file is created with only
-        meausrements and timestamps.
+        Same as original main loop with asynchronus measurements.
+        he measurement is executed at consistent intervals invariable to measurements
+        of original system. The last known measurement is written when a new line is
+        detected. Additionaly an extra file is created with onlymeausrements and
+        timestamps.
         
         """
 
@@ -519,18 +512,11 @@ class measUI():
         try:
             self.KeyDAQ.init_inst(resource=self.rwfunc.INSTRUMENT_ADDRESS)
         except errors.VisaIOError:
-            message = f"[ERROR] Instrument may not be present. Cannot continue."
-            print(message)  
-            self.txt_console.insert(tk.INSERT, message + "\n")
+            print_both(self.txt_console, f"[ERROR] Instrument may not be present. Cannot continue.")
             raise
 
-        message = f"[INFO] Instrument initialized."
-        print(message)  
-        self.txt_console.insert(tk.INSERT, message + "\n")
-        
-        message = f"[INFO] Waiting for file."
-        print(message)  
-        self.txt_console.insert(tk.INSERT, message + "\n")
+        print_both(self.txt_console, f"[INFO] Instrument initialized.")
+        print_both(self.txt_console, f"[INFO] Waiting for file.")
 
         try:
             self.rwfunc.create_file(self.rwfunc.INPUT_FILE_PATH,
@@ -538,20 +524,12 @@ class measUI():
                                 self.rwfunc.OUTPUT_FILE_PATH,
                                 self.rwfunc.OUTPUT_FILENAME)
         except FileExistsError:
-            message = f"[ERROR] Files already exists. Change the name of the output file."
-            print(message)
-            self.txt_console.insert(tk.INSERT, message + "\n")
+            print_both(self.txt_console, f"[ERROR] Files already exists. Change the name of the output file.")
             raise
 
-        message = f"[INFO] Files created."
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
-
+        print_both(self.txt_console, f"[INFO] Files created.")
         self.rwfunc.write_heading()
-
-        message = f"[INFO] Heading written."
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
+        print_both(self.txt_console, f"[INFO] Heading written.")
         
         self.meas_file = open(self.rwfunc.ASYNC_MEAS_FILEPATH, "x")
 
@@ -559,7 +537,7 @@ class measUI():
         for c in range(1, self.rwfunc.CHANNEL_NUM+1):
             head = head + f"\tT{c} (°C)"
         self.meas_file.writelines(head + "\n")
-        print(f"[INFO] Async file created.")
+        print_both(self.txt_console, f"[INFO] Async file created.")
 
         # Remove the unnecessary buttons just in case
         self.btn_setup.grid_remove()
@@ -567,16 +545,14 @@ class measUI():
         self.btn_check_inst.grid_remove()
         self.btn_start.grid_remove()
 
-        message = f"[INFO] {curr_time()}: Started program."
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
+        print_both(self.txt_console, f"[INFO] {curr_time()}: Started program.")
 
         last_meas = time.time()
         while True:
             try:
                 loop_time = time.time()
-                if int(float(self.txt_console.index("end"))) >= 30:
-                    self.txt_console.delete(1.0, tk.END)
+                if float(self.txt_console.index("end")) >= 40.0:
+                    self.txt_console.delete(15.0, tk.END)
 
                 newline_status = self.rwfunc.check_newline()
                 if  newline_status == True:
@@ -585,22 +561,26 @@ class measUI():
                     self.rwfunc.write_async_line(self.meas_file, measurements)
 
                     measurements = [round(num, 1) for num in measurements]
-                    message = f"[INFO] {curr_time()}: Line {self.rwfunc.line_num} written. Temp: {measurements}"
-                    print(message)
-                    self.txt_console.insert(tk.INSERT, message + "\n")
+                    print_both(self.txt_console, f"[INFO] {curr_time()}: Line {self.rwfunc.line_num} written. Temp: {measurements}")
 
                     last_meas = time.time()
 
-                time_since_last = (time.time() - last_meas)  # Seconds since last line
+                time.sleep(0.25)
+
+                time_since_last = time.time() - last_meas  # Seconds since last line
                 if time_since_last >= self.rwfunc.ASYNC_MEAS_INTERVAL:
                     # Asynchronous measurement
                     measurements = self.KeyDAQ.get_measurements()
                     self.rwfunc.write_async_line(self.meas_file, measurements)
                     measurements = [round(num, 1) for num in measurements]
-                    print(f"[INFO] {curr_time()} Asynchronous measurement taken. Temp: {measurements}")
+
+                    print(f"[INFO] {time_since_last:.2f} [s] passed since last measurement.")
+                    print_both(self.txt_console, f"[INFO] {curr_time()} Asynchronous measurement taken. Temp: {measurements}")
+
                     last_meas = time.time()
 
-                print(time_since_last)
+                time.sleep(0.25)
+
                 time_remaining = self.rwfunc.WAIT_TIME - (time.time() - loop_time)
                 if time_remaining <= 0 or time_remaining >= self.rwfunc.WAIT_TIME: # Just in case
                     time_remaining = self.rwfunc.WAIT_TIME
@@ -610,17 +590,13 @@ class measUI():
                 # If there was an error in main loop it was programming mistake.
                 # This is probably useless.
                 self.btn_start.grid(row=11, column=1, sticky="e", padx=self.padx, pady=self.pady)
-                message = f"[ERROR] Error occured turing main loop. Retrying...\n Error {e}"
-                print(message)
-                self.txt_console.insert(tk.INSERT, message + "\n")
+                print_both(self.txt_console, f"[ERROR] Error occured turing main loop. Retrying...\n Error {e}")
                 time.sleep(self.rwfunc.WAIT_TIME/2)
 
                 try:
-                    error = self.KeyDAQ.read_error()
-                    print(error)
-                    self.txt_console.insert(tk.INSERT, error + "\n")
+                    print_both(self.txt_console, self.KeyDAQ.read_error())
                 except Exception as e:
-                    print(e)
+                    print_both(self.txt_console, e)
                     pass              
                 # Maybe put here .after() to restart the main loop
                 # probably only while loop?
@@ -645,8 +621,7 @@ class measUI():
                 self.lbl_clock.config(text=curr_time())
                 time.sleep(0.1)
         except Exception as e:
-            print(f"[WARN] Error with clock.\n{e}")
-            self.txt_console.insert(tk.INSERT, f"[WARN] Error with clock.\n{e}")    
+            print_both(self.txt_console, f"[WARN] Error with clock.\n{e}")  
 
     def get_in_dir_path(self):
         """ Button function to get outpit file directory
@@ -691,10 +666,7 @@ class measUI():
 
         """
 
-        message = "[INFO] Checking inst connection"
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
-
+        print_both(self.txt_console, "[INFO] Checking inst connection")
         checkInstThread = threading.Thread(target=self.check_inst_thread, daemon=True)
         checkInstThread.start()
 
@@ -711,26 +683,18 @@ class measUI():
         try:
             self.KeyDAQ_test.init_inst()
         except errors.VisaIOError:
-            message = f"[ERROR] Insufficient location information or the requested device or resource is not present in the system.\n"
-            print(message)  
-            self.txt_console.insert(tk.INSERT, message)
+            print_both(self.txt_console, f"[ERROR] Insufficient location information or the requested device or resource is not present in the system.\n")
             raise
         except errors.InvalidSession:
-            message = f"[ERROR] Invalid session handle. The resource might be closed.\n"
-            print(message)  
-            self.txt_console.insert(tk.INSERT, message)
+            print_both(self.txt_console, f"[ERROR] Invalid session handle. The resource might be closed.\n")
             raise
 
         response, meas = self.KeyDAQ_test.check_response()
 
-        message = f"[INFO] Instrument response to *IDN?: {response}"
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
+        print_both(self.txt_console, f"[INFO] Instrument response to *IDN?: {response}")
 
         meas = [round(num, 1) for num in meas]
-        message = f"[INFO] Test measurement: {meas}"
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
+        print_both(self.txt_console, f"[INFO] Test measurement: {meas}")
         
         try:
             for element in meas:
@@ -751,9 +715,7 @@ class measUI():
                                 simulation=self.SIM)
                                 
         inst_list = self.KeyDAQ_test.scan_resources()
-        message = f"[INFO] Instruments: {inst_list}"
-        print(message)
-        self.txt_console.insert(tk.INSERT, message + "\n")
+        print_both(self.txt_console, f"[INFO] Instruments: {inst_list}")
         try: 
             self.KeyDAQ_test.close_session()
         except AttributeError:
